@@ -2,7 +2,8 @@ import {
     LayoutDashboard,
     UsersRound,
     Building2,
-    UserPen
+    UserPen,
+    UserRound
 } from 'lucide-react';
 
 import type { MenuItem } from '@/types/Menu';
@@ -37,6 +38,11 @@ export const adminMenu: MenuItem[] = [
                 name: 'Ranting',
                 path: '/admin/ranting',
                 icon: Building2,
+            },
+            {
+                name: 'Pengguna',
+                path: '/admin/pengguna',
+                icon: UserRound,
             },
         ],
     },

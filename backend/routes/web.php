@@ -13,11 +13,13 @@ Route::get('/admin/login', [LoginController::class, 'showLoginForm'])->name('adm
 Route::post('/admin/login', [LoginController::class, 'login']);
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 
+// Admin Panel - Public for frontend development preview
+Route::prefix('admin')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+});
+
 // Admin Panel (Protected by Auth)
 Route::prefix('admin')->middleware(['auth'])->group(function () {
-    
-    // Dashboard (Accessible by all roles)
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     // Superadmin Only
     Route::middleware('role:superadmin')->group(function () {

@@ -4,8 +4,6 @@ import {
     ClipboardList,
     Building2,
     UsersRound,
-    Newspaper,
-    Images,
 } from 'lucide-react';
 
 import { AdminLayout } from '@/Layouts/AdminLayout';
@@ -180,22 +178,6 @@ export default function Dashboard({ stats }: DashboardProps) {
             value: stats.jadwals_count || 0,
         },
         {
-            helper: 'Artikel & Berita',
-            icon: Newspaper,
-            label: 'Blog & Berita',
-            surfaceClass: 'bg-indigo-100',
-            iconClass: 'text-indigo-500/10',
-            value: stats.artikels_count || 0,
-        },
-        {
-            helper: 'Galeri foto aktif',
-            icon: Images,
-            label: 'Galeri',
-            surfaceClass: 'bg-amber-100',
-            iconClass: 'text-amber-500/10',
-            value: stats.galeris_count || 0,
-        },
-        {
             helper: 'Pesan belum dibaca',
             icon: ClipboardList,
             label: 'Pesan Kontak',
@@ -225,7 +207,7 @@ export default function Dashboard({ stats }: DashboardProps) {
             <Head title="Dashboard" />
 
             <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {cards.map((card) => (
                         <div className={`relative min-h-32 overflow-hidden rounded-lg p-4 ${card.surfaceClass}`} key={card.label}>
                             <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-white/30" />

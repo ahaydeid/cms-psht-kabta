@@ -1,8 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Bell, Menu, UserRound } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { Button } from '@/Components/ui';
+import { Avatar, Button } from '@/Components/ui';
 import { confirmAction } from '@/lib/alert';
 
 type AdminTopbarProps = {
@@ -17,6 +17,7 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
             };
             user?: {
                 name?: string;
+                photo?: string | null;
             };
             roles?: string[];
         };
@@ -25,7 +26,6 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
     const profileRef = useRef<HTMLDivElement | null>(null);
 
     const displayName = props.auth?.user?.name ?? 'Admin';
-    const organizationName = props.auth?.organizationUnit?.name ?? 'PSHT Kabta';
     const displayRole = props.auth?.roles?.[0]?.replace(/_/g, ' ') ?? 'Administrator';
 
     useEffect(() => {
@@ -65,9 +65,7 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
                     <Menu className="size-5 text-zinc-600" />
                 </Button>
 
-                <div className="hidden flex-col leading-tight lg:flex">
-                    <span className="text-lg font-semibold tracking-tight text-zinc-800">{organizationName}</span>
-                </div>
+
             </div>
 
             <div className="flex items-center gap-2 lg:gap-3">
@@ -81,9 +79,7 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
                         onClick={() => setIsProfileOpen((value) => !value)}
                         variant="ghost"
                     >
-                        <span className="flex size-8 items-center justify-center rounded-full border border-slate-200 bg-slate-200 text-zinc-950">
-                            <UserRound className="size-4" />
-                        </span>
+                        <Avatar name={displayName} photo={props.auth?.user?.photo ?? null} size="small" />
                         <span className="hidden text-left lg:block">
                             <span className="block text-sm font-semibold text-zinc-800">{displayName}</span>
                             <span className="block text-[10px] capitalize text-zinc-500">{displayRole}</span>

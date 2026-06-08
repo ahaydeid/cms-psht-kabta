@@ -14,6 +14,17 @@ export const adminMenu: MenuItem[] = [
         path: '/admin/dashboard',
     },
     {
+        name: 'MEDIA',
+        section: 'MEDIA',
+        children: [
+            {
+                name: 'Kontributor',
+                path: '/admin/pengguna',
+                icon: UserPen,
+            },
+        ],
+    },
+    {
         name: 'Master Data',
         section: 'Master Data',
         children: [
@@ -28,11 +39,6 @@ export const adminMenu: MenuItem[] = [
                 icon: Building2,
             },
         ],
-    },
-    {
-        name: 'Kontributor',
-        path: '/admin/pengguna',
-        icon: UserPen,
     },
 ];
 

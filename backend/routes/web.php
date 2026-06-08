@@ -5,59 +5,8 @@ use App\Http\Controllers\Admin\LoginController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('public.home');
+    return redirect()->route('admin.dashboard');
 });
-
-Route::get('/publik', function () {
-    return view('public.home', [
-        'organizationProfile' => [
-            'name' => 'PSHT Cabang Kabupaten Tangerang',
-            'eyebrow' => 'Persaudaraan Setia Hati Terate',
-            'headline' => 'Membangun persaudaraan, kedisiplinan, dan budi luhur.',
-            'description' => 'Website public resmi untuk menampilkan profil organisasi, berita, jadwal latihan, galeri, dan kontak PSHT Cabang Kabupaten Tangerang.',
-            'address' => 'Kabupaten Tangerang, Banten',
-            'email' => 'info@pshtkabtangerang.or.id',
-            'phone' => '+62 812-0000-0000',
-        ],
-        'stats' => [
-            ['label' => 'Ranting', 'value' => '29+'],
-            ['label' => 'Rayon', 'value' => '120+'],
-            ['label' => 'Warga Terdata', 'value' => '3.500+'],
-            ['label' => 'Kegiatan Tahunan', 'value' => '40+'],
-        ],
-        'news' => [
-            [
-                'category' => 'Kegiatan',
-                'date' => '12 Mei 2026',
-                'title' => 'Konsolidasi Pengurus Cabang dan Ranting',
-                'excerpt' => 'Koordinasi cabang dan ranting diarahkan agar informasi kegiatan tersampaikan lebih rapi kepada warga dan siswa.',
-            ],
-            [
-                'category' => 'Latihan',
-                'date' => '8 Mei 2026',
-                'title' => 'Pembinaan Latihan Rutin Rayon',
-                'excerpt' => 'Pembinaan latihan menjaga kedisiplinan, teknik dasar, dan nilai persaudaraan.',
-            ],
-            [
-                'category' => 'Pengumuman',
-                'date' => '4 Mei 2026',
-                'title' => 'Validasi Data Warga Organisasi',
-                'excerpt' => 'Informasi awal agenda pendataan dan validasi data warga pada tingkat ranting dan rayon.',
-            ],
-        ],
-        'schedules' => [
-            ['day' => 'Selasa', 'place' => 'Ranting Balaraja', 'time' => '19.30 WIB'],
-            ['day' => 'Kamis', 'place' => 'Ranting Cikupa', 'time' => '19.30 WIB'],
-            ['day' => 'Minggu', 'place' => 'Latihan Gabungan Cabang', 'time' => '07.00 WIB'],
-        ],
-        'gallery' => [
-            'Latihan Bersama',
-            'Kegiatan Cabang',
-            'Pembinaan Rayon',
-            'Silaturahmi Warga',
-        ],
-    ]);
-})->name('public.home');
 
 // Admin Authentication
 Route::get('/admin/login', [LoginController::class, 'showLoginForm'])->name('admin.login');

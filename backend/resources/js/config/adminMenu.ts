@@ -3,7 +3,8 @@ import {
     UsersRound,
     Building2,
     UserPen,
-    UserRound
+    UserRound,
+    SquarePen
 } from 'lucide-react';
 
 import type { MenuItem } from '@/types/Menu';
@@ -18,6 +19,20 @@ export const adminMenu: MenuItem[] = [
         name: 'MEDIA',
         section: 'MEDIA',
         children: [
+            {
+                name: 'Buat konten',
+                icon: SquarePen,
+                children: [
+                    {
+                        name: 'Blog',
+                        path: '/admin/berita',
+                    },
+                    {
+                        name: 'Galeri',
+                        path: '/admin/galeri',
+                    },
+                ],
+            },
             {
                 name: 'Kontributor',
                 path: '/admin/kontributor',

@@ -74,15 +74,10 @@ export function PublicTopbar() {
                 <nav aria-label="Navigasi utama" className="hidden items-center gap-1 lg:flex">
                     {publicNavigationItems.map((item) => {
                         const isActive = url === item.href || item.children?.some((child) => url === child.href) === true;
-                        const isContact = item.href === '/kontak';
                         const linkClassName = cn(
                             'border-b-2 px-3 py-2 text-sm font-medium transition hover:text-brand-yellow-dark',
                             useTransparentTopbar
-                                ? isContact
-                                  ? isActive
-                                      ? 'border-brand-yellow text-brand-yellow [-webkit-text-stroke:0.35px_rgba(17,17,17,0.55)]'
-                                      : 'border-transparent text-zinc-900 [-webkit-text-stroke:0.35px_rgba(255,255,255,0.55)] hover:text-brand-yellow-dark'
-                                  : isActive
+                                ? isActive
                                     ? 'border-brand-yellow text-brand-yellow drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
                                     : 'border-transparent text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] hover:text-brand-yellow'
                                 : isActive

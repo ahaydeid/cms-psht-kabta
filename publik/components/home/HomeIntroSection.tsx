@@ -168,9 +168,7 @@ export function HomeIntroSection() {
                 </div>
             )}
 
-            <div className="pointer-events-none absolute inset-0 z-0 bg-white">
-                <div className="absolute inset-0 bg-brand-black lg:[clip-path:polygon(0_0,64%_0,54%_100%,0_100%)]" />
-            </div>
+            <div className="pointer-events-none absolute inset-0 z-0 bg-brand-black" />
             <div
                 ref={finalHeartRef}
                 className={`pointer-events-none absolute left-1/2 top-1/2 z-0 flex h-36 w-36 -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-[opacity,transform] duration-200 ease-out sm:h-44 sm:w-44 lg:h-72 lg:w-72 ${
@@ -214,7 +212,7 @@ export function HomeIntroSection() {
 
                     <aside className="relative hidden lg:flex lg:items-center lg:justify-end">
                         <div className="flex aspect-4/5 w-80 items-center justify-center xl:w-96">
-                            <p className="text-sm font-semibold text-slate-800">Placeholder Foto</p>
+                            <p className="text-sm font-semibold text-white/40">Placeholder Foto</p>
                         </div>
                     </aside>
                 </div>

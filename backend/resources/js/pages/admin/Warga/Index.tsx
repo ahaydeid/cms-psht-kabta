@@ -83,7 +83,7 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
                         <p className="text-sm text-zinc-500">Kelola informasi keanggotaan warga PSHT Kabupaten Tangerang.</p>
                     </div>
 
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
                         <Button
                             icon={<Plus className="size-4" />}
                             variant="primary"
@@ -148,8 +148,8 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
                     </Table.Body>
                 </Table.Container>
 
-                <div className="flex flex-col gap-3 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
-                    <p>
+                <div className="flex flex-row items-center justify-between text-sm text-zinc-500 w-full">
+                    <p className="text-left">
                         Menampilkan {fromIndex} sampai {toIndex} dari {filteredData.length} data
                     </p>
 

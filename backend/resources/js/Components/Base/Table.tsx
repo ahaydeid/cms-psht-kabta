@@ -47,7 +47,7 @@ const Controls = ({
     }, [inputValue, searchTerm, setSearchTerm]);
 
     return (
-        <div className="flex text-sm items-center gap-3 pb-1">
+        <div className="flex text-sm items-center gap-3 pb-1 justify-end ml-auto">
             <select
                 value={rowsPerPage}
                 onChange={(e) => {

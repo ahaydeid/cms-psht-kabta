@@ -9,8 +9,11 @@ import { AdminLayout } from '@/Layouts/AdminLayout';
 type UserRecord = {
     id: number;
     name: string;
-    email: string;
-    role: string;
+    ranting?: string | null;
+    kontribusi?: {
+        tulisan: number;
+        galeri: number;
+    } | null;
 };
 
 type KontributorProps = {
@@ -18,18 +21,37 @@ type KontributorProps = {
 };
 
 const fallbackUsers: UserRecord[] = [
-    { id: 1, name: 'Adi Hidayat', email: 'ahadi@example.com', role: 'superadmin' },
-    { id: 2, name: 'Slamet Riyadi', email: 'slamet@example.com', role: 'admin' },
-    { id: 3, name: 'Ki Hajar Dewantara', email: 'kihajar@example.com', role: 'penulis' },
-    { id: 4, name: 'Raden Ajeng Kartini', email: 'kartini@example.com', role: 'penulis' },
-    { id: 5, name: 'Cut Nyak Dhien', email: 'cutnyak@example.com', role: 'penulis' },
+    {
+        id: 1,
+        name: 'Adi Hidayat',
+        ranting: 'Ranting Ciputat',
+        kontribusi: { tulisan: 12, galeri: 5 },
+    },
+    {
+        id: 2,
+        name: 'Slamet Riyadi',
+        ranting: 'Ranting Pamulang',
+        kontribusi: { tulisan: 8, galeri: 3 },
+    },
+    {
+        id: 3,
+        name: 'Ki Hajar Dewantara',
+        ranting: 'Ranting Serpong',
+        kontribusi: { tulisan: 25, galeri: 0 },
+    },
+    {
+        id: 4,
+        name: 'Raden Ajeng Kartini',
+        ranting: 'Ranting Cisauk',
+        kontribusi: { tulisan: 14, galeri: 9 },
+    },
+    {
+        id: 5,
+        name: 'Cut Nyak Dhien',
+        ranting: 'Ranting Tigaraksa',
+        kontribusi: { tulisan: 19, galeri: 2 },
+    },
 ];
-
-const roleLabels: Record<string, string> = {
-    superadmin: 'Super Admin',
-    admin: 'Admin',
-    penulis: 'Penulis',
-};
 
 export default function KontributorIndex({ users = [] }: KontributorProps) {
     const initialData = useMemo(() => {
@@ -45,10 +67,9 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
     const filteredData = useMemo(() => {
         return initialData.filter((item) => {
             const nameMatch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const emailMatch = item.email.toLowerCase().includes(searchTerm.toLowerCase());
-            const roleMatch = (roleLabels[item.role] || item.role).toLowerCase().includes(searchTerm.toLowerCase());
+            const rantingMatch = (item.ranting ?? '').toLowerCase().includes(searchTerm.toLowerCase());
 
-            return nameMatch || emailMatch || roleMatch;
+            return nameMatch || rantingMatch;
         });
     }, [initialData, searchTerm]);
 
@@ -90,7 +111,7 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
                             setRowsPerPage={setRowsPerPage}
                             searchTerm={searchTerm}
                             setSearchTerm={setSearchTerm}
-                            placeholder="Cari nama, email, role..."
+                            placeholder="Cari nama, ranting..."
                         />
                     </div>
                 </div>
@@ -99,8 +120,8 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
                     <Table.Header>
                         <Table.Th className="w-16 text-center">No</Table.Th>
                         <Table.Th>Nama Kontributor</Table.Th>
-                        <Table.Th>Email</Table.Th>
-                        <Table.Th>Role / Peran</Table.Th>
+                        <Table.Th>Ranting</Table.Th>
+                        <Table.Th>Jumlah Kontribusi</Table.Th>
                         <Table.Th stickyRight className="w-36 text-center">Aksi</Table.Th>
                     </Table.Header>
 
@@ -116,8 +137,10 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
                                 <Table.Row key={record.id}>
                                     <Table.Td className="text-center">{fromIndex + index}</Table.Td>
                                     <Table.Td className="font-semibold text-zinc-800">{record.name}</Table.Td>
-                                    <Table.Td>{record.email}</Table.Td>
-                                    <Table.Td className="capitalize">{roleLabels[record.role] || record.role}</Table.Td>
+                                    <Table.Td>{record.ranting ?? '-'}</Table.Td>
+                                    <Table.Td>
+                                        {record.kontribusi?.tulisan ?? 0} Tulisan, {record.kontribusi?.galeri ?? 0} Galeri
+                                    </Table.Td>
                                     <Table.Td stickyRight>
                                         <div className="flex justify-center gap-2">
                                             <Button

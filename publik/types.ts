@@ -44,3 +44,12 @@ export type PublicInformationPopup = {
     isActive: boolean;
     title: string;
 };
+
+declare global {
+    interface Window {
+        initialAppPathname?: string;
+        hasClosedHomeInformationModal?: boolean;
+        hasPlayedHomeIntroAnimation?: boolean;
+    }
+}
+

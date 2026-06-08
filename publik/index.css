@@ -1,0 +1,264 @@
+@import 'tailwindcss';
+
+@theme {
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-brand-yellow: #facc15;
+    --color-brand-yellow-dark: #ca8a04;
+    --color-brand-black: #111111;
+    --color-brand-red: #dc2626;
+    --color-brand-red-dark: #991b1b;
+    --color-brand-surface: #fafafa;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-white text-brand-black;
+    }
+}
+
+@layer components {
+    .home-intro-backdrop {
+        animation: home-intro-backdrop-drift 1.15s ease-in-out both;
+    }
+
+    .home-intro-heart .home-heart-glow {
+        animation: home-heart-glow 900ms ease-in-out infinite alternate;
+    }
+
+    .home-intro-heart .home-heart-ray {
+        animation: home-heart-ray-spread 720ms ease-out infinite;
+    }
+
+    .home-intro-heart .home-heart-icon {
+        animation: home-heart-breathe 820ms ease-in-out infinite;
+        filter: drop-shadow(0 0 18px rgb(220 38 38 / 0.45));
+        transform-origin: center;
+    }
+
+    .home-intro-heart--settle .home-heart-glow,
+    .home-intro-heart--settle .home-heart-ray,
+    .home-intro-heart--settle .home-heart-icon {
+        animation: none;
+    }
+
+    .home-heart-ray {
+        transform: rotate(var(--ray-angle)) translateX(var(--ray-distance));
+        width: var(--ray-width);
+    }
+
+    .home-heart-contrast {
+        background: radial-gradient(
+            circle at 50% 50%,
+            rgb(17 17 17 / 0.72) 0 34%,
+            rgb(17 17 17 / 0.44) 48%,
+            transparent 72%
+        );
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-intro-backdrop,
+        .home-intro-heart .home-heart-glow,
+        .home-intro-heart .home-heart-ray,
+        .home-intro-heart .home-heart-icon,
+        .profile-fighter-float,
+        .profile-logo-pulse,
+        .profile-emblem-orbit,
+        .profile-lotus-drift {
+            animation: none;
+        }
+    }
+
+    .profile-fighter-float {
+        animation: profile-fighter-float 4.8s ease-in-out infinite;
+    }
+
+    .profile-logo-pulse {
+        animation: profile-logo-pulse 3.6s ease-in-out infinite;
+    }
+
+    .profile-emblem-orbit {
+        animation: profile-emblem-orbit 18s linear infinite;
+    }
+
+    .profile-emblem-orbit--slow {
+        animation-duration: 26s;
+        animation-direction: reverse;
+    }
+
+    .profile-lotus-drift {
+        animation: profile-lotus-drift 14s ease-in-out infinite;
+    }
+
+    .student-detail-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+        align-items: start;
+        gap: 1rem;
+    }
+
+    .student-profile-media {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 2.4rem;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .student-detail-card {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        padding: 1.25rem;
+    }
+
+    .student-detail-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .student-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 2rem;
+        row-gap: 1.5rem;
+    }
+
+    .student-detail-grid--contact {
+        row-gap: 1.75rem;
+    }
+
+    @media (max-width: 1023px) {
+        .student-detail-layout {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .student-detail-layout > aside {
+            max-width: 28rem;
+        }
+
+        .student-detail-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 639px) {
+        .student-profile-media {
+            grid-template-columns: minmax(0, 1fr) 2rem;
+            gap: 0.5rem;
+        }
+
+        .student-profile-media > div:last-child {
+            font-size: 1.125rem;
+        }
+
+        .student-detail-card {
+            gap: 2rem;
+            padding: 1rem;
+        }
+
+        .student-detail-section {
+            gap: 1rem;
+        }
+
+        .student-detail-grid {
+            grid-template-columns: minmax(0, 1fr);
+            row-gap: 1.25rem;
+        }
+    }
+}
+
+@keyframes home-intro-backdrop-drift {
+    from {
+        background-position: 50% 50%;
+    }
+
+    to {
+        background-position: 42% 58%;
+    }
+}
+
+@keyframes home-heart-glow {
+    from {
+        opacity: 0.45;
+        transform: scale(0.92);
+    }
+
+    to {
+        opacity: 0.9;
+        transform: scale(1.12);
+    }
+}
+
+@keyframes home-heart-ray-spread {
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: rotate(var(--ray-angle)) translateX(calc(var(--ray-distance) - 0.35rem)) scaleX(0.28);
+    }
+
+    50% {
+        opacity: 1;
+        transform: rotate(var(--ray-angle)) translateX(var(--ray-distance)) scaleX(1.08);
+    }
+}
+
+@keyframes home-heart-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.07);
+    }
+}
+
+@keyframes profile-fighter-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-0.9rem);
+    }
+}
+
+@keyframes profile-logo-pulse {
+    0%,
+    100% {
+        opacity: 0.32;
+        transform: scale(0.96);
+    }
+
+    50% {
+        opacity: 0.48;
+        transform: scale(1.04);
+    }
+}
+
+@keyframes profile-emblem-orbit {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(360deg) scale(1);
+    }
+}
+
+@keyframes profile-lotus-drift {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+
+    50% {
+        transform: translate3d(-1rem, 0.75rem, 0) rotate(4deg);
+    }
+}

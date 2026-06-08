@@ -9,6 +9,7 @@ import { Link, usePage } from '../../runtime/inertia-shim';
 
 export function PublicTopbar() {
     const { url } = usePage();
+    const useTransparentTopbar = false;
     const [isScrolled, setIsScrolled] = useState(false);
     const [isTopbarVisible, setIsTopbarVisible] = useState(true);
 

@@ -120,7 +120,7 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
                             paginatedData.map((record, index) => (
                                 <Table.Row key={record.id}>
                                     <Table.Td className="text-center">{fromIndex + index}</Table.Td>
-                                    <Table.Td className="font-semibold text-zinc-800">{record.nama}</Table.Td>
+                                    <Table.Td>{record.nama}</Table.Td>
                                     <Table.Td>{record.tingkatan}</Table.Td>
                                     <Table.Td>{record.ranting?.nama ?? '-'}</Table.Td>
                                     <Table.Td stickyRight>
@@ -149,7 +149,7 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
 
                 <div className="flex flex-row items-center justify-between text-sm text-zinc-500 w-full">
                     <p className="text-left">
-                        Menampilkan {fromIndex} sampai {toIndex} dari {filteredData.length} data
+                        {fromIndex}–{toIndex} dari {filteredData.length} data
                     </p>
 
                     <Table.Pagination

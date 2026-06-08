@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Loader2, Send, Save, UploadCloud, X } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Button, Input } from '@/Components/ui';
@@ -8,8 +8,6 @@ import { AdminLayout } from '@/Layouts/AdminLayout';
 type ImagePreview = {
     file: File;
     preview: string;
-    name: string;
-    size: string;
 };
 
 export default function GaleriIndex() {
@@ -21,84 +19,46 @@ export default function GaleriIndex() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Clean up previews on unmount
+    const MAX_IMAGES = 30;
+    const MAX_DESC = 500;
+
+    const selectedImagesRef = useRef<ImagePreview[]>([]);
+    selectedImagesRef.current = selectedImages;
+
     useEffect(() => {
         return () => {
-            selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
+            selectedImagesRef.current.forEach((img) => URL.revokeObjectURL(img.preview));
         };
-    }, [selectedImages]);
-
-    const formatBytes = (bytes: number, decimals = 2) => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const dm = decimals < 0 ? 0 : decimals;
-        const sizes = ['Bytes', 'KB', 'MB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-    };
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setError(null);
         setSuccessMessage(null);
         if (!e.target.files) return;
 
-        const files = Array.from(e.target.files);
-        
-        if (selectedImages.length + files.length > 30) {
-            setError('Maksimal hanya dapat mengunggah 30 foto.');
+        const files = Array.from(e.target.files).filter((f) => f.type.startsWith('image/'));
+
+        if (selectedImages.length + files.length > MAX_IMAGES) {
+            setError(`Maksimal hanya dapat mengunggah ${MAX_IMAGES} foto.`);
+            e.target.value = '';
             return;
         }
 
         const newImages = files.map((file) => ({
             file,
-            name: file.name,
-            size: formatBytes(file.size),
             preview: URL.createObjectURL(file),
         }));
 
         setSelectedImages((prev) => [...prev, ...newImages]);
+        e.target.value = '';
     };
 
     const removeSelectedImage = (index: number) => {
         setSelectedImages((prev) => {
             const next = [...prev];
-            URL.revokeObjectURL(next[index].preview);
             next.splice(index, 1);
             return next;
         });
-    };
-
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        setError(null);
-        setSuccessMessage(null);
-        if (!e.dataTransfer.files) return;
-
-        const files = Array.from(e.dataTransfer.files);
-        const imageFiles = files.filter(file => file.type.startsWith('image/'));
-
-        if (imageFiles.length === 0) {
-            setError('Harap pilih file gambar.');
-            return;
-        }
-
-        if (selectedImages.length + imageFiles.length > 30) {
-            setError('Maksimal hanya dapat mengunggah 30 foto.');
-            return;
-        }
-
-        const newImages = imageFiles.map((file) => ({
-            file,
-            name: file.name,
-            size: formatBytes(file.size),
-            preview: URL.createObjectURL(file),
-        }));
-
-        setSelectedImages((prev) => [...prev, ...newImages]);
     };
 
     const handleAction = (status: 'publish' | 'draft') => {
@@ -130,155 +90,175 @@ export default function GaleriIndex() {
         }, 1000);
     };
 
+    const handleReset = () => {
+        if (confirm('Batalkan pembuatan galeri?')) {
+            setJudul('');
+            setDeskripsi('');
+            selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
+            setSelectedImages([]);
+            setError(null);
+            setSuccessMessage(null);
+        }
+    };
+
     return (
         <AdminLayout>
             <Head title="Buat Galeri" />
 
-            <div className="max-w-3xl mx-auto space-y-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-zinc-950">Buat Galeri</h1>
+            <div className="flex flex-col gap-3">
+                {/* Page header */}
+                <div className="space-y-2">
+                    <h1 className="text-2xl font-semibold text-zinc-900">Buat Galeri</h1>
+                    {error && (
+                        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                            {error}
+                        </div>
+                    )}
+                    {successMessage && (
+                        <div className="rounded border border-green-200 bg-green-50 px-4 py-3 text-xs font-semibold text-green-700">
+                            {successMessage}
+                        </div>
+                    )}
                 </div>
 
-                {error && (
-                    <div className="p-3.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs font-semibold">
-                        {error}
-                    </div>
-                )}
+                {/*
+                    Two-column layout.
+                    Panel height = 100dvh - topbar(3.5rem/56px) - page padding top+bottom(2rem) - header area(~4rem)
+                    = calc(100dvh - 9.5rem)
+                */}
+                <div
+                    className="grid grid-cols-1 gap-3 lg:grid-cols-2"
+                    style={{ height: 'calc(100dvh - 9.5rem)' }}
+                >
+                    {/* === LEFT: Form Inputs === */}
+                    <div className="flex flex-col gap-4 overflow-hidden rounded border border-zinc-200 bg-white p-4">
+                        <p className="shrink-0 text-sm font-medium text-zinc-500">Informasi Galeri</p>
 
-                {successMessage && (
-                    <div className="p-3.5 bg-green-50 border border-green-200 text-green-700 rounded-lg text-xs font-semibold">
-                        {successMessage}
-                    </div>
-                )}
-
-                <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-sm space-y-5">
-                    <Input
-                        label="Judul Galeri"
-                        placeholder="Tulis judul galeri..."
-                        value={judul}
-                        onChange={(e) => setJudul(e.target.value)}
-                        requiredNote="Wajib"
-                    />
-
-                    <div className="space-y-1.5">
-                        <label className="block text-xs font-medium text-zinc-700">
-                            Deskripsi
-                        </label>
-                        <textarea
-                            className="w-full rounded border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:ring-1 focus:ring-yellow-400/30 min-h-[100px]"
-                            placeholder="Tulis keterangan galeri..."
-                            value={deskripsi}
-                            onChange={(e) => setDeskripsi(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center text-xs font-medium text-zinc-700">
-                            <span>Gambar (Maks. 30)</span>
-                            <span className="text-zinc-400">{selectedImages.length} / 30</span>
-                        </div>
-
-                        {/* Custom Trigger Dropzone */}
-                        <div
-                            onDragOver={handleDragOver}
-                            onDrop={handleDrop}
-                            onClick={() => fileInputRef.current?.click()}
-                            className="border-2 border-dashed border-zinc-200 hover:border-yellow-400/50 rounded-lg py-8 text-center cursor-pointer transition bg-zinc-50/50 hover:bg-yellow-50/5"
-                        >
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                className="hidden"
+                        <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
+                            <Input
+                                label="Judul Galeri"
+                                placeholder="Tulis judul galeri..."
+                                value={judul}
+                                onChange={(e) => setJudul(e.target.value)}
+                                requiredNote="Wajib"
                             />
-                            <UploadCloud className="size-8 text-zinc-400 mx-auto mb-2" />
-                            <p className="text-xs font-medium text-zinc-700">
-                                Seret gambar ke sini atau <span className="text-yellow-600 font-semibold">pilih file</span>
-                            </p>
+
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-medium text-zinc-700">
+                                    Deskripsi
+                                </label>
+                                <textarea
+                                    className="w-full flex-1 resize-none rounded border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/30"
+                                    placeholder="Tulis keterangan galeri..."
+                                    rows={8}
+                                    maxLength={MAX_DESC}
+                                    value={deskripsi}
+                                    onChange={(e) => setDeskripsi(e.target.value)}
+                                />
+                                <p className="text-right text-xs text-zinc-400">
+                                    {deskripsi.length} / {MAX_DESC}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="shrink-0 border-t border-zinc-100 pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2.5">
+                            <Button type="button" variant="outline" onClick={handleReset} disabled={isSubmitting}>
+                                Batal
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => handleAction('draft')}
+                                disabled={isSubmitting}
+                                icon={isSubmitting ? <Loader2 className="size-4 animate-spin" /> : undefined}
+                            >
+                                Simpan Draf
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="primary"
+                                onClick={() => handleAction('publish')}
+                                disabled={isSubmitting}
+                                icon={isSubmitting ? <Loader2 className="size-4 animate-spin" /> : undefined}
+                            >
+                                Terbitkan
+                            </Button>
                         </div>
                     </div>
 
-                    {selectedImages.length > 0 && (
-                        <div className="space-y-2 pt-2">
-                            <div className="flex justify-between items-center text-[11px] font-medium text-zinc-400">
-                                <span>Preview Gambar</span>
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedImages([])}
-                                    className="text-red-500 hover:underline"
-                                >
-                                    Hapus Semua
-                                </button>
-                            </div>
+                    {/* === RIGHT: Photo Grid with internal scroll === */}
+                    <div className="flex flex-col gap-3 overflow-hidden rounded border border-zinc-200 bg-white p-4">
+                        <div className="shrink-0 flex items-center justify-between">
+                            <p className="text-sm font-medium text-zinc-500">Foto</p>
+                            <span className="text-xs text-zinc-400">{selectedImages.length} / {MAX_IMAGES}</span>
+                        </div>
 
-                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5 p-2.5 border border-zinc-150 rounded-lg bg-zinc-50 max-h-[220px] overflow-y-auto">
-                                {selectedImages.map((img, idx) => (
-                                    <div key={idx} className="relative aspect-square rounded-md overflow-hidden border border-zinc-200 group bg-white shadow-sm">
-                                        <img
-                                            src={img.preview}
-                                            alt="preview"
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="hidden"
+                        />
+
+                        {/* Scrollable photo grid */}
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="grid grid-cols-4 gap-2">
+                                {selectedImages.length < MAX_IMAGES && (
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="group flex aspect-square items-center justify-center rounded border-2 border-dashed border-zinc-300 bg-zinc-50 transition hover:border-yellow-400 hover:bg-yellow-50"
+                                    >
+                                        <Plus className="size-7 text-zinc-400 transition group-hover:text-yellow-500" />
+                                    </button>
+                                )}
+
+                                {selectedImages
+                                    .map((img, idx) => ({ img, idx }))
+                                    .reverse()
+                                    .map(({ img, idx }) => (
+                                        <div
+                                            key={idx}
+                                            className="relative aspect-square overflow-hidden rounded border border-zinc-200 bg-zinc-100"
+                                        >
+                                            <img
+                                                src={img.preview}
+                                                alt={`preview-${idx}`}
+                                                className="h-full w-full object-cover"
+                                            />
                                             <button
                                                 type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removeSelectedImage(idx);
-                                                }}
-                                                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-1 transition shadow"
+                                                onClick={() => removeSelectedImage(idx)}
+                                                className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-red-600"
                                             >
                                                 <X className="size-3" />
                                             </button>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="border-t border-zinc-100 pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2.5">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                                if (confirm('Batalkan pembuatan galeri?')) {
-                                    setJudul('');
-                                    setDeskripsi('');
-                                    setSelectedImages([]);
-                                    setError(null);
-                                    setSuccessMessage(null);
+                                    ))
                                 }
-                            }}
-                            disabled={isSubmitting}
-                            className="font-medium"
-                        >
-                            Batal
-                        </Button>
-                        
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => handleAction('draft')}
-                            disabled={isSubmitting}
-                            icon={isSubmitting ? <Loader2 className="size-4 animate-spin" /> : undefined}
-                            className="font-medium"
-                        >
-                            Simpan Draf
-                        </Button>
+                            </div>
 
-                        <Button
-                            type="button"
-                            variant="primary"
-                            onClick={() => handleAction('publish')}
-                            disabled={isSubmitting}
-                            icon={isSubmitting ? <Loader2 className="size-4 animate-spin" /> : undefined}
-                            className="font-medium"
-                        >
-                            Terbitkan Konten
-                        </Button>
+                            {selectedImages.length === 0 && (
+                                <p className="py-4 text-center text-xs text-zinc-400">
+                                    Klik tombol <span className="font-semibold text-zinc-500">+</span> untuk memilih foto
+                                </p>
+                            )}
+                        </div>
+
+                        {selectedImages.length > 1 && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
+                                    setSelectedImages([]);
+                                }}
+                                className="shrink-0 self-end text-xs text-red-500 hover:underline"
+                            >
+                                Hapus Semua
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

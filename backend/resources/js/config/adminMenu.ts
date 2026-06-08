@@ -4,7 +4,8 @@ import {
     Building2,
     UserPen,
     UserRound,
-    SquarePen
+    SquarePen,
+    CalendarDays
 } from 'lucide-react';
 
 import type { MenuItem } from '@/types/Menu';
@@ -58,6 +59,11 @@ export const adminMenu: MenuItem[] = [
                 name: 'Pengguna',
                 path: '/admin/pengguna',
                 icon: UserRound,
+            },
+            {
+                name: 'Jadwal Latihan',
+                path: '/admin/jadwal-latihan',
+                icon: CalendarDays,
             },
         ],
     },

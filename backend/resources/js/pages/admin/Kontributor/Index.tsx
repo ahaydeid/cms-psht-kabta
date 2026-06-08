@@ -136,7 +136,7 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
                             paginatedData.map((record, index) => (
                                 <Table.Row key={record.id}>
                                     <Table.Td className="text-center">{fromIndex + index}</Table.Td>
-                                    <Table.Td className="font-semibold text-zinc-800">{record.name}</Table.Td>
+                                    <Table.Td>{record.name}</Table.Td>
                                     <Table.Td>{record.ranting ?? '-'}</Table.Td>
                                     <Table.Td>
                                         {record.kontribusi?.tulisan ?? 0} Tulisan, {record.kontribusi?.galeri ?? 0} Galeri
@@ -167,7 +167,7 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
 
                 <div className="flex flex-row items-center justify-between text-sm text-zinc-500 w-full">
                     <p className="text-left">
-                        Menampilkan {fromIndex} sampai {toIndex} dari {filteredData.length} data
+                        {fromIndex}–{toIndex} dari {filteredData.length} data
                     </p>
 
                     <Table.Pagination

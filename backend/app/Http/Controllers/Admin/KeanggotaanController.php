@@ -12,14 +12,14 @@ class KeanggotaanController extends Controller
 {
     public function index()
     {
-        return Inertia::render('admin/Keanggotaan/Index', [
+        return Inertia::render('admin/Warga/Index', [
             'anggota' => Keanggotaan::with('ranting')->latest()->get()
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('admin/Keanggotaan/Create', [
+        return Inertia::render('admin/Warga/Create', [
             'rantings' => Ranting::all()
         ]);
     }
@@ -35,12 +35,12 @@ class KeanggotaanController extends Controller
 
         Keanggotaan::create($validated);
 
-        return redirect()->route('admin.keanggotaan.index')->with('success', 'Anggota berhasil ditambahkan.');
+        return redirect()->route('admin.warga.index')->with('success', 'Anggota berhasil ditambahkan.');
     }
 
     public function edit(Keanggotaan $keanggotaan)
     {
-        return Inertia::render('admin/Keanggotaan/Edit', [
+        return Inertia::render('admin/Warga/Edit', [
             'anggota' => $keanggotaan,
             'rantings' => Ranting::all()
         ]);
@@ -57,12 +57,12 @@ class KeanggotaanController extends Controller
 
         $keanggotaan->update($validated);
 
-        return redirect()->route('admin.keanggotaan.index')->with('success', 'Anggota berhasil diperbarui.');
+        return redirect()->route('admin.warga.index')->with('success', 'Anggota berhasil diperbarui.');
     }
 
     public function destroy(Keanggotaan $keanggotaan)
     {
         $keanggotaan->delete();
-        return redirect()->route('admin.keanggotaan.index')->with('success', 'Anggota berhasil dihapus.');
+        return redirect()->route('admin.warga.index')->with('success', 'Anggota berhasil dihapus.');
     }
 }

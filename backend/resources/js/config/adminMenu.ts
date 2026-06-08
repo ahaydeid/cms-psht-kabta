@@ -19,7 +19,7 @@ export const adminMenu: MenuItem[] = [
         children: [
             {
                 name: 'Warga',
-                path: '/admin/keanggotaan',
+                path: '/admin/warga',
                 icon: UsersRound,
             },
             {

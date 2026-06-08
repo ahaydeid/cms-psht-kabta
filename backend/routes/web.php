@@ -28,5 +28,5 @@ Route::prefix('admin')->group(function () {
     Route::resource('/berita', \App\Http\Controllers\Admin\BeritaController::class)->names('admin.berita');
     Route::resource('/galeri', \App\Http\Controllers\Admin\GaleriController::class)->names('admin.galeri');
     Route::resource('/jadwal-latihan', \App\Http\Controllers\Admin\JadwalLatihanController::class)->names('admin.jadwal-latihan');
-    Route::resource('/keanggotaan', \App\Http\Controllers\Admin\KeanggotaanController::class)->names('admin.keanggotaan');
+    Route::resource('/warga', \App\Http\Controllers\Admin\KeanggotaanController::class)->names('admin.warga');
 });

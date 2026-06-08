@@ -24,7 +24,7 @@ export const adminMenu: MenuItem[] = [
                 icon: SquarePen,
                 children: [
                     {
-                        name: 'Berita',
+                        name: 'Tulisan',
                         path: '/admin/berita',
                     },
                     {

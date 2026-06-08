@@ -127,7 +127,7 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
                                         <div className="flex justify-center gap-2">
                                             <Button
                                                 size="sm"
-                                                variant="outline"
+                                                variant="warning"
                                                 icon={<Pencil className="size-3.5" />}
                                             >
                                                 Edit

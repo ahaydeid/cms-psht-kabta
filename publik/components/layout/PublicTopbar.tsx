@@ -9,9 +9,10 @@ import { Link, usePage } from '../../runtime/inertia-shim';
 
 export function PublicTopbar() {
     const { url } = usePage();
-    const useTransparentTopbar = false;
     const [isScrolled, setIsScrolled] = useState(false);
     const [isTopbarVisible, setIsTopbarVisible] = useState(true);
+    const isHome = url === '/';
+    const useTransparentTopbar = isHome && !isScrolled;
 
     useEffect(() => {
         let lastScrollY = window.scrollY;
@@ -44,7 +45,7 @@ export function PublicTopbar() {
             className={cn(
                 'fixed inset-x-0 top-0 z-40 border-b transition-[background-color,border-color,box-shadow,opacity,transform] duration-300 ease-out will-change-transform',
                 isTopbarVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0',
-                'border-zinc-200 bg-white/95 shadow-sm backdrop-blur',
+                useTransparentTopbar ? 'border-transparent bg-transparent' : 'border-zinc-200 bg-white/95 shadow-sm backdrop-blur',
             )}
         >
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -76,10 +77,16 @@ export function PublicTopbar() {
                         const isContact = item.href === '/kontak';
                         const linkClassName = cn(
                             'border-b-2 px-3 py-2 text-sm font-medium transition hover:text-brand-yellow-dark',
-                            isActive
-                                ? 'border-brand-yellow text-brand-red-dark'
-                                : isContact
-                                  ? 'border-transparent text-brand-red hover:text-brand-red-dark'
+                            useTransparentTopbar
+                                ? isContact
+                                  ? isActive
+                                      ? 'border-brand-yellow text-brand-yellow [-webkit-text-stroke:0.35px_rgba(17,17,17,0.55)]'
+                                      : 'border-transparent text-zinc-900 [-webkit-text-stroke:0.35px_rgba(255,255,255,0.55)] hover:text-brand-yellow-dark'
+                                  : isActive
+                                    ? 'border-brand-yellow text-brand-yellow drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
+                                    : 'border-transparent text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] hover:text-brand-yellow'
+                                : isActive
+                                  ? 'border-brand-yellow text-brand-yellow-dark'
                                   : 'border-transparent text-zinc-700 hover:text-brand-yellow-dark',
                         );
 

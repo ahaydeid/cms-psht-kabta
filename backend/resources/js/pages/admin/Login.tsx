@@ -1,127 +1,147 @@
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
-import { useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
+import { LoadingOverlay } from '@/Components/ui';
 
-import { Button, Input } from '@/Components/ui';
+type LoginForm = {
+    email: string;
+    password: string;
+    remember: boolean;
+};
 
-export default function LoginPage() {
+export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
-    const form = useForm({
+    const form = useForm<LoginForm>({
         email: '',
         password: '',
-        remember: true,
+        remember: false,
     });
 
-    const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        form.post('/admin/login');
-    };
+
+        form.transform((data) => ({
+            ...data,
+            email: data.email.trim().toLowerCase(),
+        }));
+
+        form.post('/admin/login', {
+            onFinish: () => {
+                form.reset('password');
+                form.transform((data) => data);
+            },
+        });
+    }
 
     return (
         <>
-            <Head title="Login" />
+            <Head title="Masuk" />
 
-            <main className="relative flex min-h-screen flex-col items-center justify-center bg-slate-100 px-4 py-8">
-                <div className="z-10 grid w-full max-w-220 overflow-hidden rounded-xl border border-zinc-100 bg-white md:h-130 md:grid-cols-2">
-                    <div className="hidden h-full min-h-0 flex-col items-center justify-center bg-white p-10 lg:flex">
+            <main className="relative flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-8">
+                <LoadingOverlay show={form.processing} />
+
+                <section className="z-10 grid w-full max-w-220 grid-cols-1 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xs md:h-130 md:grid-cols-2">
+                    <div className="hidden items-center justify-center bg-yellow-50/40 md:flex">
                         <img
                             alt="Logo PSHT"
-                            className="h-auto max-h-96 max-w-[72%] object-contain"
+                            className="h-auto max-h-80 max-w-[70%] object-contain"
                             src="/img/logo-psht.webp"
                         />
                     </div>
 
                     <div className="flex flex-col justify-center px-6 py-10 md:px-14 md:py-0">
-                        <div className="w-full">
-                            <div>
-                                <h1 className="mb-2 text-2xl font-semibold text-yellow-600">
-                                    <span className="text-slate-700">Log</span>In
-                                </h1>
-                                <p className="mb-8 text-sm text-slate-500">
-                                    Selamat Datang di PSHT Kabta
-                                </p>
+                        <h1 className="mb-2 text-2xl font-semibold text-yellow-600">
+                            LogIn
+                        </h1>
+                        <p className="mb-8 text-sm text-slate-500">
+                            Selamat datang di PSHT Kabta
+                        </p>
+
+                        <form className="mt-6" onSubmit={submit}>
+                            <label className="mb-4 block">
+                                <span className="ml-0.5 block text-xs font-medium text-gray-700">
+                                    Email
+                                </span>
+                                <input
+                                    className="w-full rounded-none border-0 border-b border-gray-300 bg-transparent px-1 py-2 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-yellow-600"
+                                    type="email"
+                                    value={form.data.email}
+                                    onChange={(event) => form.setData('email', event.target.value)}
+                                    autoComplete="email"
+                                    disabled={form.processing}
+                                    required
+                                />
+                                {form.errors.email ? (
+                                    <p className="mt-1 text-xs text-red-600">{form.errors.email}</p>
+                                ) : null}
+                            </label>
+
+                            <div className="relative mb-6">
+                                <label className="block">
+                                    <span className="ml-0.5 block text-xs font-medium text-gray-700">
+                                        Password
+                                    </span>
+                                    <input
+                                        className="w-full rounded-none border-0 border-b border-gray-300 bg-transparent px-1 py-2 pr-10 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-yellow-600"
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={form.data.password}
+                                        onChange={(event) => form.setData('password', event.target.value)}
+                                        autoComplete="current-password"
+                                        disabled={form.processing}
+                                        required
+                                    />
+                                </label>
+                                {form.data.password ? (
+                                    <button
+                                        className="absolute right-2 top-7 cursor-pointer text-gray-400 hover:text-gray-600 border-none bg-transparent"
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        disabled={form.processing}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                ) : null}
+                                {form.errors.password ? (
+                                    <p className="mt-1 text-xs text-red-600">{form.errors.password}</p>
+                                ) : null}
                             </div>
 
-                            <form className="mt-6" onSubmit={submit}>
-                                <div className="mb-4">
-                                    <label className="mb-1.5 ml-0.5 block text-xs font-medium text-zinc-700" htmlFor="email">
-                                        Email
-                                    </label>
-                                    <div className="relative">
-                                        <div className="pointer-events-none absolute top-2.5 left-0 flex h-5 w-5 items-center justify-center text-slate-200">
-                                            <Mail className="h-5 w-5" />
-                                        </div>
-                                        <Input
-                                            autoComplete="email"
-                                            className="pl-8"
-                                            error={form.errors.email}
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            onChange={(event) => form.setData('email', event.target.value)}
-                                            value={form.data.email}
-                                            variant="underlined"
-                                        />
-                                    </div>
-                                </div>
+                            <div className="mb-5 flex items-center justify-between gap-3">
+                                <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                                    <input
+                                        className="size-4 rounded-full border-gray-300 accent-yellow-600 cursor-pointer"
+                                        type="checkbox"
+                                        checked={form.data.remember}
+                                        onChange={(event) => form.setData('remember', event.target.checked)}
+                                        disabled={form.processing}
+                                    />
+                                    Ingat sesi
+                                </label>
 
-                                <div className="mb-6">
-                                    <label className="mb-1.5 ml-0.5 block text-xs font-medium text-zinc-700" htmlFor="password">
-                                        Password
-                                    </label>
-                                    <div className="relative">
-                                        <div className="pointer-events-none absolute top-2.5 left-0 flex h-5 w-5 items-center justify-center text-slate-200">
-                                            <LockKeyhole className="h-5 w-5" />
-                                        </div>
-                                        <Input
-                                            autoComplete="current-password"
-                                            className="pr-10 pl-8"
-                                            error={form.errors.password}
-                                            id="password"
-                                            name="password"
-                                            onChange={(event) => form.setData('password', event.target.value)}
-                                            type={showPassword ? 'text' : 'password'}
-                                            value={form.data.password}
-                                            variant="underlined"
-                                        />
-                                        <button
-                                            className="absolute top-2.5 right-2 flex h-5 w-5 items-center justify-center cursor-pointer text-slate-400 transition hover:text-slate-600"
-                                            onClick={() => setShowPassword((value) => !value)}
-                                            type="button"
-                                        >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </div>
+                                <span className="text-xs text-gray-400">
+                                    Hubungi pengurus jika lupa password
+                                </span>
+                            </div>
 
-                                    <div className="mt-2 text-right">
-                                        <button className="text-xs text-yellow-600 hover:underline" type="button">
-                                            Lupa password?
-                                        </button>
-                                    </div>
-                                </div>
+                            <button
+                                className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-yellow-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-yellow-700 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                                type="submit"
+                                disabled={form.processing}
+                            >
+                                {form.processing ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                                Masuk
+                            </button>
 
-                                <Button
-                                    variant='primary'
-                                    className="mt-6 w-full rounded-full"
-                                    isLoading={form.processing}
-                                    size="lg"
-                                    type="submit"
-                                >
-                                    Masuk
-                                </Button>
-
-                                <p className="mt-3 text-center text-xs text-zinc-500">
-                                    Belum punya akun?{' '}
-                                    <Link className="text-yellow-600 hover:underline" href="#">
-                                        Permohonan Akun
-                                    </Link>
-                                </p>
-                            </form>
-                        </div>
+                            <p className="mt-3 text-center text-xs text-gray-500">
+                                Email menggunakan akun yang telah terdaftar pada sistem.
+                            </p>
+                        </form>
                     </div>
-                </div>
+                </section>
 
-                <div className="mt-6 text-center text-xs text-zinc-400">PSHT Kabupaten Tangerang</div>
+                <footer className="absolute bottom-10 text-center text-xs text-gray-400">
+                    PSHT Cabang Kabupaten Tangerang
+                </footer>
             </main>
         </>
     );

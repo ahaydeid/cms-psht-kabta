@@ -95,7 +95,7 @@ const Container = ({ children, className = "" }: TableContainerProps) => {
 const Header = ({ children }: { children: React.ReactNode }) => {
     return (
         <thead>
-            <tr className="bg-zinc-100 text-zinc-700 h-12">{children}</tr>
+            <tr className="bg-sky-50 text-sky-900 h-12">{children}</tr>
         </thead>
     );
 };
@@ -118,9 +118,9 @@ interface TableThProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
 const Th = ({ children, className = "", stickyRight = false, ...props }: TableThProps) => {
     return (
         <th 
-            className={`p-3 whitespace-nowrap text-zinc-600 font-semibold ${
+            className={`p-3 whitespace-nowrap text-sky-900 font-semibold ${
                 stickyRight
-                    ? "sticky right-0 z-20 bg-zinc-100 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]"
+                    ? "sticky right-0 z-20 bg-sky-50 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.35)]"
                     : ""
             } ${className}`}
             {...props}

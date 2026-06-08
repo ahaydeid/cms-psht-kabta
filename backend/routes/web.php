@@ -17,7 +17,7 @@ Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.lo
 Route::prefix('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-    Route::resource('/pengguna', \App\Http\Controllers\Admin\PenggunaController::class)->names('admin.pengguna');
+    Route::resource('/kontributor', \App\Http\Controllers\Admin\PenggunaController::class)->names('admin.kontributor');
     Route::resource('/popup-informasi', \App\Http\Controllers\Admin\PopupInformasiController::class)->names('admin.popup-informasi');
 
     Route::resource('/ranting', \App\Http\Controllers\Admin\RantingController::class)->names('admin.ranting');

@@ -6,40 +6,35 @@ import { Table } from '@/Components/Base/Table';
 import { Button } from '@/Components/ui';
 import { AdminLayout } from '@/Layouts/AdminLayout';
 
-type WargaRecord = {
+type UserRecord = {
     id: number;
-    nama: string;
-    tingkatan: string;
-    ranting?: {
-        id?: number;
-        nama?: string;
-    } | null;
-    foto?: string | null;
+    name: string;
+    email: string;
+    role: string;
 };
 
-type WargaProps = {
-    anggota?: WargaRecord[];
+type KontributorProps = {
+    users?: UserRecord[];
 };
 
-const fallbackAnggota: WargaRecord[] = [
-    { id: 1, nama: 'Budi Santoso', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Ciputat' }, foto: null },
-    { id: 2, nama: 'Siti Rahmawati', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Pamulang' }, foto: null },
-    { id: 3, nama: 'Joko Widodo', tingkatan: 'Warga Tingkat II', ranting: { nama: 'Ranting Serpong' }, foto: null },
-    { id: 4, nama: 'Ahmad Dahlan', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Cisauk' }, foto: null },
-    { id: 5, nama: 'Dewi Sartika', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Tigaraksa' }, foto: null },
-    { id: 6, nama: 'Heri Prasetyo', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Cikupa' }, foto: null },
-    { id: 7, nama: 'Rina Wijayanti', tingkatan: 'Warga Tingkat II', ranting: { nama: 'Ranting Balaraja' }, foto: null },
-    { id: 8, nama: 'Prabowo Subianto', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Curug' }, foto: null },
-    { id: 9, nama: 'Megawati Soekarnoputri', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Kosambi' }, foto: null },
-    { id: 10, nama: 'Abdurrahman Wahid', tingkatan: 'Warga Tingkat II', ranting: { nama: 'Ranting Legok' }, foto: null },
-    { id: 11, nama: 'Susilo Bambang Yudhoyono', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Kronjo' }, foto: null },
-    { id: 12, nama: 'Mochammad Ridwan', tingkatan: 'Warga Tingkat I', ranting: { nama: 'Ranting Panongan' }, foto: null },
+const fallbackUsers: UserRecord[] = [
+    { id: 1, name: 'Adi Hidayat', email: 'ahadi@example.com', role: 'superadmin' },
+    { id: 2, name: 'Slamet Riyadi', email: 'slamet@example.com', role: 'admin' },
+    { id: 3, name: 'Ki Hajar Dewantara', email: 'kihajar@example.com', role: 'penulis' },
+    { id: 4, name: 'Raden Ajeng Kartini', email: 'kartini@example.com', role: 'penulis' },
+    { id: 5, name: 'Cut Nyak Dhien', email: 'cutnyak@example.com', role: 'penulis' },
 ];
 
-export default function WargaIndex({ anggota = [] }: WargaProps) {
+const roleLabels: Record<string, string> = {
+    superadmin: 'Super Admin',
+    admin: 'Admin',
+    penulis: 'Penulis',
+};
+
+export default function KontributorIndex({ users = [] }: KontributorProps) {
     const initialData = useMemo(() => {
-        return anggota.length > 0 ? anggota : fallbackAnggota;
-    }, [anggota]);
+        return users.length > 0 ? users : fallbackUsers;
+    }, [users]);
 
     // Search and Pagination States
     const [searchTerm, setSearchTerm] = useState('');
@@ -49,11 +44,11 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
     // Filter Data client-side
     const filteredData = useMemo(() => {
         return initialData.filter((item) => {
-            const namaMatch = item.nama.toLowerCase().includes(searchTerm.toLowerCase());
-            const tingkatanMatch = item.tingkatan.toLowerCase().includes(searchTerm.toLowerCase());
-            const rantingMatch = (item.ranting?.nama ?? '').toLowerCase().includes(searchTerm.toLowerCase());
+            const nameMatch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+            const emailMatch = item.email.toLowerCase().includes(searchTerm.toLowerCase());
+            const roleMatch = (roleLabels[item.role] || item.role).toLowerCase().includes(searchTerm.toLowerCase());
 
-            return namaMatch || tingkatanMatch || rantingMatch;
+            return nameMatch || emailMatch || roleMatch;
         });
     }, [initialData, searchTerm]);
 
@@ -74,12 +69,12 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
 
     return (
         <AdminLayout>
-            <Head title="Data Warga" />
+            <Head title="Data Kontributor" />
 
             <Table.Root>
                 <div className="space-y-4">
                     <div>
-                        <h1 className="text-2xl font-semibold text-zinc-900">Data Warga</h1>
+                        <h1 className="text-2xl font-semibold text-zinc-900">Data Kontributor</h1>
                     </div>
 
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
@@ -87,7 +82,7 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
                             icon={<Plus className="size-4" />}
                             variant="primary"
                         >
-                            Tambah Warga
+                            Tambah Kontributor
                         </Button>
 
                         <Table.Controls
@@ -95,7 +90,7 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
                             setRowsPerPage={setRowsPerPage}
                             searchTerm={searchTerm}
                             setSearchTerm={setSearchTerm}
-                            placeholder="Cari nama, tingkatan, ranting..."
+                            placeholder="Cari nama, email, role..."
                         />
                     </div>
                 </div>
@@ -103,9 +98,9 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
                 <Table.Container>
                     <Table.Header>
                         <Table.Th className="w-16 text-center">No</Table.Th>
-                        <Table.Th>Nama Warga</Table.Th>
-                        <Table.Th>Tingkatan</Table.Th>
-                        <Table.Th>Ranting</Table.Th>
+                        <Table.Th>Nama Kontributor</Table.Th>
+                        <Table.Th>Email</Table.Th>
+                        <Table.Th>Role / Peran</Table.Th>
                         <Table.Th stickyRight className="w-36 text-center">Aksi</Table.Th>
                     </Table.Header>
 
@@ -113,16 +108,16 @@ export default function WargaIndex({ anggota = [] }: WargaProps) {
                         {paginatedData.length === 0 ? (
                             <Table.Row>
                                 <Table.Td colSpan={5} className="p-8 text-center text-zinc-500">
-                                    Tidak ada data warga yang sesuai.
+                                    Tidak ada data kontributor yang sesuai.
                                 </Table.Td>
                             </Table.Row>
                         ) : (
                             paginatedData.map((record, index) => (
                                 <Table.Row key={record.id}>
                                     <Table.Td className="text-center">{fromIndex + index}</Table.Td>
-                                    <Table.Td className="font-semibold text-zinc-800">{record.nama}</Table.Td>
-                                    <Table.Td>{record.tingkatan}</Table.Td>
-                                    <Table.Td>{record.ranting?.nama ?? '-'}</Table.Td>
+                                    <Table.Td className="font-semibold text-zinc-800">{record.name}</Table.Td>
+                                    <Table.Td>{record.email}</Table.Td>
+                                    <Table.Td className="capitalize">{roleLabels[record.role] || record.role}</Table.Td>
                                     <Table.Td stickyRight>
                                         <div className="flex justify-center gap-2">
                                             <Button

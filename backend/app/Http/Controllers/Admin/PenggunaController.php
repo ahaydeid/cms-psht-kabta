@@ -11,14 +11,14 @@ class PenggunaController extends Controller
 {
     public function index()
     {
-        return Inertia::render('admin/Pengguna/Index', [
+        return Inertia::render('admin/Kontributor/Index', [
             'users' => User::latest()->get()
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('admin/Pengguna/Create');
+        return Inertia::render('admin/Kontributor/Create');
     }
 
     public function store(Request $request)
@@ -34,12 +34,12 @@ class PenggunaController extends Controller
 
         User::create($validated);
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil dibuat.');
+        return redirect()->route('admin.kontributor.index')->with('success', 'Pengguna berhasil dibuat.');
     }
 
     public function edit(User $pengguna)
     {
-        return Inertia::render('admin/Pengguna/Edit', [
+        return Inertia::render('admin/Kontributor/Edit', [
             'user' => $pengguna
         ]);
     }
@@ -61,7 +61,7 @@ class PenggunaController extends Controller
 
         $pengguna->update($validated);
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil diperbarui.');
+        return redirect()->route('admin.kontributor.index')->with('success', 'Pengguna berhasil diperbarui.');
     }
 
     public function destroy(User $pengguna)
@@ -72,6 +72,6 @@ class PenggunaController extends Controller
 
         $pengguna->delete();
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil dihapus.');
+        return redirect()->route('admin.kontributor.index')->with('success', 'Pengguna berhasil dihapus.');
     }
 }

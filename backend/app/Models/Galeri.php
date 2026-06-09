@@ -12,6 +12,10 @@ class Galeri extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'file_path' => 'array',
+    ];
+
     public function penulis(): BelongsTo
     {
         return $this->belongsTo(User::class, 'penulis_id');

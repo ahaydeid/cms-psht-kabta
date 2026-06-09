@@ -1,267 +1,208 @@
-import { Head } from '@inertiajs/react';
-import { Loader2, Plus, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { Button, Input } from '@/Components/ui';
+import { Table } from '@/Components/Base/Table';
+import { Button, Badge } from '@/Components/ui';
 import { AdminLayout } from '@/Layouts/AdminLayout';
+import { confirmAction, showToast } from '@/lib/alert';
 
-type ImagePreview = {
-    file: File;
-    preview: string;
+type GaleriRecord = {
+    id: number;
+    judul: string;
+    file_path: string[];
+    keterangan?: string | null;
+    status: 'active' | 'inactive';
+    penulis?: {
+        name: string;
+    } | null;
+    ranting?: string | null;
+    created_at: string;
 };
 
-export default function GaleriIndex() {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [judul, setJudul] = useState('');
-    const [deskripsi, setDeskripsi] = useState('');
-    const [selectedImages, setSelectedImages] = useState<ImagePreview[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+type GaleriProps = {
+    galeri?: GaleriRecord[];
+};
 
-    const MAX_IMAGES = 30;
-    const MAX_DESC = 500;
+export default function GaleriIndex({ galeri = [] }: GaleriProps) {
+    // Search and Pagination States
+    const [searchTerm, setSearchTerm] = useState('');
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const selectedImagesRef = useRef<ImagePreview[]>([]);
-    selectedImagesRef.current = selectedImages;
+    // Filter Data client-side
+    const filteredData = useMemo(() => {
+        return galeri.filter((item) => {
+            const judulMatch = item.judul.toLowerCase().includes(searchTerm.toLowerCase());
+            const keteranganMatch = (item.keterangan || '').toLowerCase().includes(searchTerm.toLowerCase());
+            const penulisMatch = (item.penulis?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+            const statusMatch = item.status.toLowerCase().includes(searchTerm.toLowerCase());
 
-    useEffect(() => {
-        return () => {
-            selectedImagesRef.current.forEach((img) => URL.revokeObjectURL(img.preview));
-        };
-    }, []);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setError(null);
-        setSuccessMessage(null);
-        if (!e.target.files) return;
-
-        const files = Array.from(e.target.files).filter((f) => f.type.startsWith('image/'));
-
-        if (selectedImages.length + files.length > MAX_IMAGES) {
-            setError(`Maksimal hanya dapat mengunggah ${MAX_IMAGES} foto.`);
-            e.target.value = '';
-            return;
-        }
-
-        const newImages = files.map((file) => ({
-            file,
-            preview: URL.createObjectURL(file),
-        }));
-
-        setSelectedImages((prev) => [...prev, ...newImages]);
-        e.target.value = '';
-    };
-
-    const removeSelectedImage = (index: number) => {
-        setSelectedImages((prev) => {
-            const next = [...prev];
-            next.splice(index, 1);
-            return next;
+            return judulMatch || keteranganMatch || penulisMatch || statusMatch;
         });
-    };
+    }, [galeri, searchTerm]);
 
-    const handleAction = (status: 'publish' | 'draft') => {
-        setError(null);
-        setSuccessMessage(null);
+    // Paginate Data client-side
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
+    const paginatedData = useMemo(() => {
+        const start = (currentPage - 1) * rowsPerPage;
+        return filteredData.slice(start, start + rowsPerPage);
+    }, [filteredData, currentPage, rowsPerPage]);
 
-        if (!judul.trim()) {
-            setError('Judul galeri wajib diisi.');
-            return;
-        }
+    // Reset to page 1 on filter/size change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, rowsPerPage]);
 
-        if (selectedImages.length === 0) {
-            setError('Pilih minimal 1 gambar.');
-            return;
-        }
+    const fromIndex = filteredData.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+    const toIndex = Math.min(currentPage * rowsPerPage, filteredData.length);
 
-        setIsSubmitting(true);
+    const handleDelete = async (id: number, judul: string) => {
+        const result = await confirmAction({
+            title: 'Hapus Galeri?',
+            text: `Apakah Anda yakin ingin menghapus galeri "${judul}"? Tindakan ini tidak dapat dibatalkan.`,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            variant: 'danger',
+        });
 
-        setTimeout(() => {
-            setIsSubmitting(false);
-            setSuccessMessage(
-                status === 'publish'
-                    ? 'Galeri berhasil diterbitkan!'
-                    : 'Galeri disimpan sebagai draf.'
-            );
-            setJudul('');
-            setDeskripsi('');
-            setSelectedImages([]);
-        }, 1000);
-    };
-
-    const handleReset = () => {
-        if (confirm('Batalkan pembuatan galeri?')) {
-            setJudul('');
-            setDeskripsi('');
-            selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
-            setSelectedImages([]);
-            setError(null);
-            setSuccessMessage(null);
+        if (result.isConfirmed) {
+            router.delete(`/admin/galeri/${id}`, {
+                onSuccess: () => {
+                    showToast({
+                        title: 'Galeri berhasil dihapus.',
+                    });
+                },
+                onError: () => {
+                    showToast({
+                        title: 'Gagal menghapus galeri.',
+                        icon: 'error',
+                    });
+                }
+            });
         }
     };
 
     return (
         <AdminLayout>
-            <Head title="Buat Galeri" />
+            <Head title="Daftar Galeri" />
 
-            <div className="flex flex-col gap-3">
-                {/* Page header */}
-                <div className="space-y-2">
-                    <h1 className="text-2xl font-semibold text-zinc-900">Buat Galeri</h1>
-                    {error && (
-                        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
-                            {error}
-                        </div>
-                    )}
-                    {successMessage && (
-                        <div className="rounded border border-green-200 bg-green-50 px-4 py-3 text-xs font-semibold text-green-700">
-                            {successMessage}
-                        </div>
-                    )}
-                </div>
+            <Table.Root>
+                <div className="space-y-4">
+                    <div>
+                        <h1 className="text-2xl font-semibold text-zinc-900">Daftar Galeri</h1>
+                    </div>
 
-                {/*
-                    Two-column layout.
-                    Panel height = 100dvh - topbar(3.5rem/56px) - page padding top+bottom(2rem) - header area(~4rem)
-                    = calc(100dvh - 9.5rem)
-                */}
-                <div
-                    className="grid grid-cols-1 gap-3 lg:grid-cols-2"
-                    style={{ height: 'calc(100dvh - 9.5rem)' }}
-                >
-                    {/* === LEFT: Form Inputs === */}
-                    <div className="flex flex-col gap-4 overflow-hidden rounded border border-zinc-200 bg-white p-4">
-                        <p className="shrink-0 text-sm font-medium text-zinc-500">Informasi Galeri</p>
-
-                        <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
-                            <Input
-                                label="Judul Galeri"
-                                placeholder="Tulis judul galeri..."
-                                value={judul}
-                                onChange={(e) => setJudul(e.target.value)}
-                                requiredNote="Wajib"
-                            />
-
-                            <div className="space-y-1.5">
-                                <label className="block text-xs font-medium text-zinc-700">
-                                    Deskripsi
-                                </label>
-                                <textarea
-                                    className="w-full flex-1 resize-none rounded border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none transition-all placeholder:text-zinc-400 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/30"
-                                    placeholder="Tulis keterangan galeri..."
-                                    rows={8}
-                                    maxLength={MAX_DESC}
-                                    value={deskripsi}
-                                    onChange={(e) => setDeskripsi(e.target.value)}
-                                />
-                                <p className="text-right text-xs text-zinc-400">
-                                    {deskripsi.length} / {MAX_DESC}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="shrink-0 border-t border-zinc-100 pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2.5">
-                            <Button type="button" variant="outline" onClick={handleReset} disabled={isSubmitting}>
-                                Batal
-                            </Button>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
+                        <Link href="/admin/galeri/create">
                             <Button
-                                type="button"
-                                variant="secondary"
-                                onClick={() => handleAction('draft')}
-                                disabled={isSubmitting}
-                                icon={isSubmitting ? <Loader2 className="size-4 animate-spin" /> : undefined}
-                            >
-                                Simpan Draf
-                            </Button>
-                            <Button
-                                type="button"
+                                icon={<Plus className="size-4" />}
                                 variant="primary"
-                                onClick={() => handleAction('publish')}
-                                disabled={isSubmitting}
-                                icon={isSubmitting ? <Loader2 className="size-4 animate-spin" /> : undefined}
                             >
-                                Terbitkan
+                                Buat Galeri
                             </Button>
-                        </div>
-                    </div>
+                        </Link>
 
-                    {/* === RIGHT: Photo Grid with internal scroll === */}
-                    <div className="flex flex-col gap-3 overflow-hidden rounded border border-zinc-200 bg-white p-4">
-                        <div className="shrink-0 flex items-center justify-between">
-                            <p className="text-sm font-medium text-zinc-500">Foto</p>
-                            <span className="text-xs text-zinc-400">{selectedImages.length} / {MAX_IMAGES}</span>
-                        </div>
-
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="hidden"
+                        <Table.Controls
+                            rowsPerPage={rowsPerPage}
+                            setRowsPerPage={setRowsPerPage}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            placeholder="Cari judul, keterangan, status..."
                         />
-
-                        {/* Scrollable photo grid */}
-                        <div className="flex-1 overflow-y-auto">
-                            <div className="grid grid-cols-4 gap-2">
-                                {selectedImages.length < MAX_IMAGES && (
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="group flex aspect-square items-center justify-center rounded border-2 border-dashed border-zinc-300 bg-zinc-50 transition hover:border-yellow-400 hover:bg-yellow-50"
-                                    >
-                                        <Plus className="size-7 text-zinc-400 transition group-hover:text-yellow-500" />
-                                    </button>
-                                )}
-
-                                {selectedImages
-                                    .map((img, idx) => ({ img, idx }))
-                                    .reverse()
-                                    .map(({ img, idx }) => (
-                                        <div
-                                            key={idx}
-                                            className="relative aspect-square overflow-hidden rounded border border-zinc-200 bg-zinc-100"
-                                        >
-                                            <img
-                                                src={img.preview}
-                                                alt={`preview-${idx}`}
-                                                className="h-full w-full object-cover"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSelectedImage(idx)}
-                                                className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-red-600"
-                                            >
-                                                <X className="size-3" />
-                                            </button>
-                                        </div>
-                                    ))
-                                }
-                            </div>
-
-                            {selectedImages.length === 0 && (
-                                <p className="py-4 text-center text-xs text-zinc-400">
-                                    Klik tombol <span className="font-semibold text-zinc-500">+</span> untuk memilih foto
-                                </p>
-                            )}
-                        </div>
-
-                        {selectedImages.length > 1 && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
-                                    setSelectedImages([]);
-                                }}
-                                className="shrink-0 self-end text-xs text-red-500 hover:underline"
-                            >
-                                Hapus Semua
-                            </button>
-                        )}
                     </div>
                 </div>
-            </div>
+
+                <Table.Container>
+                    <Table.Header>
+                        <Table.Th className="w-16 text-center">No</Table.Th>
+                        <Table.Th>Judul Galeri</Table.Th>
+                        <Table.Th>Deskripsi</Table.Th>
+                        <Table.Th>Jumlah Foto</Table.Th>
+                        <Table.Th>Kontributor</Table.Th>
+                        <Table.Th>Ranting</Table.Th>
+                        <Table.Th>Status</Table.Th>
+                        <Table.Th>Tanggal</Table.Th>
+                        <Table.Th stickyRight className="w-36 text-center">Aksi</Table.Th>
+                    </Table.Header>
+
+                    <Table.Body>
+                        {paginatedData.length === 0 ? (
+                            <Table.Row>
+                                <Table.Td colSpan={9} className="p-8 text-center text-zinc-500">
+                                    Tidak ada data galeri yang ditemukan.
+                                </Table.Td>
+                            </Table.Row>
+                        ) : (
+                            paginatedData.map((record, index) => {
+                                const images = record.file_path || [];
+
+                                return (
+                                    <Table.Row key={record.id}>
+                                        <Table.Td className="text-center">{fromIndex + index}</Table.Td>
+                                        <Table.Td className="font-medium text-zinc-900 max-w-xs truncate">{record.judul}</Table.Td>
+                                        <Table.Td className="text-zinc-500 max-w-xs truncate">{record.keterangan || '-'}</Table.Td>
+                                        <Table.Td>{images.length} Foto</Table.Td>
+                                        <Table.Td>{record.penulis?.name || '-'}</Table.Td>
+                                        <Table.Td>{record.ranting || '-'}</Table.Td>
+                                        <Table.Td>
+                                            {record.status === 'active' ? (
+                                                <Badge variant="success" size="sm">
+                                                    Diterbitkan
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" size="sm">
+                                                    Draf
+                                                </Badge>
+                                            )}
+                                        </Table.Td>
+                                        <Table.Td>
+                                            {new Date(record.created_at).toLocaleDateString('id-ID', {
+                                                day: 'numeric',
+                                                month: 'short',
+                                                year: 'numeric',
+                                            })}
+                                        </Table.Td>
+                                        <Table.Td stickyRight>
+                                            <div className="flex justify-center gap-2">
+                                                <Link href={`/admin/galeri/${record.id}/edit`}>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="warning"
+                                                        icon={<Pencil className="size-3.5" />}
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                </Link>
+                                                <Button
+                                                    size="sm"
+                                                    variant="danger"
+                                                    icon={<Trash2 className="size-3.5" />}
+                                                    onClick={() => handleDelete(record.id, record.judul)}
+                                                >
+                                                    Hapus
+                                                </Button>
+                                            </div>
+                                        </Table.Td>
+                                    </Table.Row>
+                                );
+                            })
+                        )}
+                    </Table.Body>
+                </Table.Container>
+
+                <div className="flex flex-row items-center justify-between text-sm text-zinc-500 w-full">
+                    <p className="text-left">
+                        {fromIndex}–{toIndex} dari {filteredData.length} data
+                    </p>
+
+                    <Table.Pagination
+                        page={currentPage}
+                        totalPages={totalPages}
+                        setPage={setCurrentPage}
+                    />
+                </div>
+            </Table.Root>
         </AdminLayout>
     );
 }

@@ -31,7 +31,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 />
             ) : null}
 
-            <div className={cn('transition-all duration-300', sidebarMargin)}>
+            <div className={cn('sticky top-0 z-20 transition-all duration-300', sidebarMargin)}>
                 <AdminTopbar onMenuClick={() => setIsMobileOpen(true)} />
             </div>
 

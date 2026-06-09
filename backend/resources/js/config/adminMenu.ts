@@ -4,8 +4,9 @@ import {
     Building2,
     UserPen,
     UserRound,
-    SquarePen,
-    CalendarDays
+    CalendarDays,
+    FileText,
+    Image
 } from 'lucide-react';
 
 import type { MenuItem } from '@/types/Menu';
@@ -21,18 +22,14 @@ export const adminMenu: MenuItem[] = [
         section: 'MEDIA',
         children: [
             {
-                name: 'Buat konten',
-                icon: SquarePen,
-                children: [
-                    {
-                        name: 'Tulisan',
-                        path: '/admin/berita',
-                    },
-                    {
-                        name: 'Galeri',
-                        path: '/admin/galeri',
-                    },
-                ],
+                name: 'Tulisan',
+                path: '/admin/berita',
+                icon: FileText,
+            },
+            {
+                name: 'Galeri',
+                path: '/admin/galeri',
+                icon: Image,
             },
             {
                 name: 'Kontributor',
@@ -69,6 +66,6 @@ export const adminMenu: MenuItem[] = [
     },
 ];
 
-export function buildAdminMenu(access?: any): MenuItem[] {
+export function buildAdminMenu(_access?: any): MenuItem[] {
     return adminMenu;
 }

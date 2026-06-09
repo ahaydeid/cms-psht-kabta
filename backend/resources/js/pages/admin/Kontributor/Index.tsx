@@ -24,31 +24,31 @@ const fallbackUsers: UserRecord[] = [
     {
         id: 1,
         name: 'Adi Hidayat',
-        ranting: 'Ranting Ciputat',
+        ranting: 'Ciputat',
         kontribusi: { tulisan: 12, galeri: 5 },
     },
     {
         id: 2,
         name: 'Slamet Riyadi',
-        ranting: 'Ranting Pamulang',
+        ranting: 'Pamulang',
         kontribusi: { tulisan: 8, galeri: 3 },
     },
     {
         id: 3,
         name: 'Ki Hajar Dewantara',
-        ranting: 'Ranting Serpong',
+        ranting: 'Serpong',
         kontribusi: { tulisan: 25, galeri: 0 },
     },
     {
         id: 4,
         name: 'Raden Ajeng Kartini',
-        ranting: 'Ranting Cisauk',
+        ranting: 'Cisauk',
         kontribusi: { tulisan: 14, galeri: 9 },
     },
     {
         id: 5,
         name: 'Cut Nyak Dhien',
-        ranting: 'Ranting Tigaraksa',
+        ranting: 'Tigaraksa',
         kontribusi: { tulisan: 19, galeri: 2 },
     },
 ];

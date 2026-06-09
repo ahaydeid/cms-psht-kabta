@@ -66,7 +66,6 @@ export function AdminSidebar({ isMobileOpen = false, isOpen, onCloseMobile, onTo
             access?: any;
         };
     }>();
-    const [openDropdowns, setOpenDropdowns] = useState<string[]>([]);
     const menuItems = useMemo(() => buildAdminMenu(props.auth?.access ?? {}), [props.auth?.access]);
 
     const allPaths = useMemo(() => collectPaths(menuItems), [menuItems]);
@@ -84,8 +83,18 @@ export function AdminSidebar({ isMobileOpen = false, isOpen, onCloseMobile, onTo
         [allPaths, url],
     );
 
+    const [openDropdowns, setOpenDropdowns] = useState<string[]>(() =>
+        findAncestorKeys(menuItems, activePath)
+    );
+
     useEffect(() => {
-        setOpenDropdowns(findAncestorKeys(menuItems, activePath));
+        setOpenDropdowns((current) => {
+            const next = findAncestorKeys(menuItems, activePath);
+            if (current.length === next.length && current.every((v, i) => v === next[i])) {
+                return current;
+            }
+            return next;
+        });
     }, [activePath, menuItems]);
 
     const toggleDropdown = (key: string) => {

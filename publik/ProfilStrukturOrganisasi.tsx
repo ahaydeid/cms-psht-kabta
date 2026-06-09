@@ -1,5 +1,4 @@
-import { User2 } from 'lucide-react';
-
+import { Avatar } from './components/common/Avatar';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { Head } from './runtime/inertia-shim';
 
@@ -93,23 +92,13 @@ function OfficialCard({ name, position, variant = 'light' }: { name: string; pos
     const isDark = variant === 'dark';
 
     return (
-        <article className={isDark ? 'rounded-lg bg-brand-black p-5 text-white' : 'rounded-lg border border-zinc-200 bg-white p-5 text-zinc-950'}>
-            <div className="flex items-start gap-4">
-                <span
-                    className={
-                        isDark
-                            ? 'inline-flex size-12 shrink-0 items-center justify-center rounded-full border border-white/20 text-brand-yellow'
-                            : 'inline-flex size-12 shrink-0 items-center justify-center rounded-full border border-slate-600 text-slate-600'
-                    }
-                >
-                    <User2 className="size-6" />
-                </span>
-                <div className="space-y-0.5">
-                    <p className={isDark ? 'text-sm font-semibold text-brand-yellow' : 'text-sm font-semibold text-brand-yellow-dark'}>
-                        {position}
-                    </p>
-                    <h3 className="text-xl leading-none font-bold">{name}</h3>
-                </div>
+        <article className="flex items-center gap-4 py-3">
+            <Avatar name={name} size="medium" />
+            <div className="space-y-0.5 min-w-0">
+                <p className={isDark ? 'text-xs font-semibold text-brand-yellow-dark' : 'text-xs font-semibold text-brand-yellow-dark'}>
+                    {position}
+                </p>
+                <h3 className="text-base leading-snug font-bold text-zinc-950 truncate">{name}</h3>
             </div>
         </article>
     );
@@ -145,52 +134,64 @@ export default function ProfilStrukturOrganisasi() {
                         <div className="relative">
                             <div className="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-zinc-200 lg:block" />
 
-                            <div className="relative mx-auto grid max-w-4xl gap-4 sm:grid-cols-2">
+                            <div className="relative mx-auto grid max-w-4xl gap-2 sm:grid-cols-2">
                                 {topOfficials.map((official) => (
                                     <OfficialCard key={official.position} {...official} />
                                 ))}
                             </div>
 
-                            <div className="relative mx-auto mt-8 max-w-xl">
+                            <div className="relative mx-auto mt-4 max-w-xl">
                                 <span className="mx-auto mb-4 hidden h-10 w-px bg-brand-black lg:block" />
                                 <OfficialCard name={coreOfficials[0].name} position={coreOfficials[0].position} variant="dark" />
                             </div>
 
                             <SectionLabel>Ketua Bidang</SectionLabel>
-                            <div className="relative mx-auto mt-4 grid max-w-5xl gap-4 sm:grid-cols-3">
+                            <div className="relative mx-auto mt-2 grid max-w-5xl gap-2 sm:grid-cols-3">
                                 {chairOfficials.map((official) => (
                                     <OfficialCard key={official.position} {...official} />
                                 ))}
                             </div>
 
                             <SectionLabel>Sekretariat</SectionLabel>
-                            <div className="relative mx-auto mt-4 grid max-w-4xl gap-4 sm:grid-cols-2">
+                            <div className="relative mx-auto mt-2 grid max-w-4xl gap-2 sm:grid-cols-2">
                                 {secretaryOfficials.map((official) => (
                                     <OfficialCard key={official.position} {...official} />
                                 ))}
                             </div>
 
                             <SectionLabel>Bendahara</SectionLabel>
-                            <div className="relative mx-auto mt-4 grid max-w-5xl gap-4 sm:grid-cols-3">
+                            <div className="relative mx-auto mt-2 grid max-w-5xl gap-2 sm:grid-cols-3">
                                 {treasurerOfficials.map((official) => (
                                     <OfficialCard key={official.position} {...official} />
                                 ))}
                             </div>
 
                             <SectionLabel>Bidang Kerja</SectionLabel>
-                            <div className="relative mt-4 grid gap-4 lg:grid-cols-3">
+                            <div className="relative mt-4 grid gap-6 lg:grid-cols-3">
                                 {departments.map((department) => (
-                                    <article className="rounded-lg border border-zinc-200 bg-white p-5" key={department.title}>
-                                        <h3 className="text-xl font-bold text-zinc-950">{department.title}</h3>
-                                        <div className="mt-5 space-y-2">
+                                    <div key={department.title}>
+                                        <p className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-brand-red-dark">
+                                            {department.title}
+                                        </p>
+                                        <div className="space-y-1 divide-y divide-zinc-100">
                                             {department.members.map((member, index) => (
-                                                <p className="flex items-center justify-between gap-4 text-sm text-zinc-600" key={`${department.title}-${index}`}>
-                                                    <span>{index === 0 ? 'Koordinator' : `Anggota ${index}`}</span>
-                                                    <span className="font-semibold text-zinc-950">{member}</span>
-                                                </p>
+                                                <div
+                                                    className="flex items-center gap-3 py-2"
+                                                    key={`${department.title}-${index}`}
+                                                >
+                                                    <Avatar name={member} size="small" />
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs text-zinc-500">
+                                                            {index === 0 ? 'Koordinator' : `Anggota ${index}`}
+                                                        </p>
+                                                        <p className="text-sm font-semibold text-zinc-950 truncate">
+                                                            {member}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             ))}
                                         </div>
-                                    </article>
+                                    </div>
                                 ))}
                             </div>
                         </div>

@@ -26,6 +26,7 @@ Route::prefix('admin')->group(function () {
     Route::resource('/struktur-organisasi', \App\Http\Controllers\Admin\StrukturOrganisasiController::class)->names('admin.struktur-organisasi');
     Route::resource('/pesan-kontak', \App\Http\Controllers\Admin\PesanKontakController::class)->names('admin.pesan-kontak');
 
+    Route::post('/berita/upload-image', [\App\Http\Controllers\Admin\BeritaController::class, 'uploadImage'])->name('admin.berita.upload-image');
     Route::resource('/berita', \App\Http\Controllers\Admin\BeritaController::class)->names('admin.berita');
     Route::resource('/galeri', \App\Http\Controllers\Admin\GaleriController::class)->names('admin.galeri');
     Route::resource('/jadwal-latihan', \App\Http\Controllers\Admin\JadwalLatihanController::class)->names('admin.jadwal-latihan');

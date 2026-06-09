@@ -18,7 +18,7 @@ class BeritaController extends Controller
 
     public function create()
     {
-        return Inertia::render('admin/Berita/Create');
+        return Inertia::render('admin/Berita/Form');
     }
 
     public function store(Request $request)
@@ -28,8 +28,15 @@ class BeritaController extends Controller
             'isi' => 'required|string',
             'kategori' => 'required|string',
             'status' => 'required|string|in:draft,published',
-            'gambar' => 'nullable|string',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
         ]);
+
+        if ($request->hasFile('gambar')) {
+            $path = $request->file('gambar')->store('berita', 'public');
+            $validated['gambar'] = '/storage/' . $path;
+        } else {
+            $validated['gambar'] = null;
+        }
 
         $validated['slug'] = \Illuminate\Support\Str::slug($validated['judul']) . '-' . time();
         $validated['penulis_id'] = auth()->id();
@@ -41,7 +48,7 @@ class BeritaController extends Controller
 
     public function edit(Artikel $beritum)
     {
-        return Inertia::render('admin/Berita/Edit', [
+        return Inertia::render('admin/Berita/Form', [
             'berita' => $beritum
         ]);
     }
@@ -53,8 +60,17 @@ class BeritaController extends Controller
             'isi' => 'required|string',
             'kategori' => 'required|string',
             'status' => 'required|string|in:draft,published',
-            'gambar' => 'nullable|string',
+            'gambar' => 'nullable',
         ]);
+
+        if ($request->hasFile('gambar')) {
+            $path = $request->file('gambar')->store('berita', 'public');
+            $validated['gambar'] = '/storage/' . $path;
+        } else if (is_string($request->input('gambar'))) {
+            $validated['gambar'] = $request->input('gambar');
+        } else {
+            $validated['gambar'] = $beritum->gambar;
+        }
 
         if ($beritum->judul !== $validated['judul']) {
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['judul']) . '-' . time();
@@ -69,5 +85,21 @@ class BeritaController extends Controller
     {
         $beritum->delete();
         return redirect()->route('admin.berita.index')->with('success', 'Berita berhasil dihapus.');
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('berita', 'public');
+            return response()->json([
+                'url' => '/storage/' . $path,
+            ]);
+        }
+
+        return response()->json(['error' => 'No image uploaded'], 400);
     }
 }

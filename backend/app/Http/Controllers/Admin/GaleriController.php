@@ -18,28 +18,41 @@ class GaleriController extends Controller
 
     public function create()
     {
-        return Inertia::render('admin/Galeri/Create');
+        return Inertia::render('admin/Galeri/Form');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
-            'file_path' => 'required|string',
             'keterangan' => 'nullable|string',
             'status' => 'required|string|in:active,inactive',
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
         ]);
 
-        $validated['penulis_id'] = auth()->id();
+        $uploadedPaths = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('galeri', 'public');
+                $uploadedPaths[] = '/storage/' . $path;
+            }
+        }
 
-        Galeri::create($validated);
+        $galeri = new Galeri();
+        $galeri->judul = $validated['judul'];
+        $galeri->keterangan = $validated['keterangan'] ?? null;
+        $galeri->status = $validated['status'];
+        $galeri->file_path = $uploadedPaths;
+        $galeri->penulis_id = auth()->id();
+        $galeri->save();
 
         return redirect()->route('admin.galeri.index')->with('success', 'Galeri berhasil ditambahkan.');
     }
 
     public function edit(Galeri $galeri)
     {
-        return Inertia::render('admin/Galeri/Edit', [
+        return Inertia::render('admin/Galeri/Form', [
             'galeri' => $galeri
         ]);
     }
@@ -48,12 +61,28 @@ class GaleriController extends Controller
     {
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
-            'file_path' => 'required|string',
             'keterangan' => 'nullable|string',
             'status' => 'required|string|in:active,inactive',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
+            'existing_images' => 'nullable|array',
         ]);
 
-        $galeri->update($validated);
+        $finalPaths = $validated['existing_images'] ?? [];
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('galeri', 'public');
+                $finalPaths[] = '/storage/' . $path;
+            }
+        }
+
+        $galeri->update([
+            'judul' => $validated['judul'],
+            'keterangan' => $validated['keterangan'] ?? null,
+            'status' => $validated['status'],
+            'file_path' => $finalPaths,
+        ]);
 
         return redirect()->route('admin.galeri.index')->with('success', 'Galeri berhasil diperbarui.');
     }

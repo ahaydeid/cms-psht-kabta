@@ -1,12 +1,14 @@
 import {
     LayoutDashboard,
     UsersRound,
-    Building2,
+    MapPinned,
     UserPen,
     UserRound,
     CalendarDays,
     FileText,
-    Image
+    Image,
+    Inbox,
+    Mail
 } from 'lucide-react';
 
 import type { MenuItem } from '@/types/Menu';
@@ -36,6 +38,21 @@ export const adminMenu: MenuItem[] = [
                 path: '/admin/kontributor',
                 icon: UserPen,
             },
+            {
+                name: 'Draft',
+                path: '/admin/draft',
+                icon: Inbox,
+            },
+            {
+                name: 'Agenda',
+                path: '/admin/agenda',
+                icon: CalendarDays,
+            },
+            {
+                name: 'Pesan',
+                path: '/admin/pesan',
+                icon: Mail,
+            },
         ],
     },
     {
@@ -50,11 +67,11 @@ export const adminMenu: MenuItem[] = [
             {
                 name: 'Ranting',
                 path: '/admin/ranting',
-                icon: Building2,
+                icon: MapPinned,
             },
             {
-                name: 'Pengguna',
-                path: '/admin/pengguna',
+                name: 'Akun',
+                path: '/admin/akun',
                 icon: UserRound,
             },
             {
@@ -66,6 +83,26 @@ export const adminMenu: MenuItem[] = [
     },
 ];
 
-export function buildAdminMenu(_access?: any): MenuItem[] {
-    return adminMenu;
+export function buildAdminMenu(role?: string): MenuItem[] {
+    const menu = [...adminMenu];
+    
+    const masterDataIndex = menu.findIndex(m => m.name === 'Master Data');
+    if (masterDataIndex !== -1 && menu[masterDataIndex].children) {
+        let children = [...menu[masterDataIndex].children!];
+        
+        if (role === 'admin') {
+            children = children.filter(item => item.name !== 'Ranting');
+            
+            const insertIndex = children.findIndex(item => item.name === 'Warga') + 1;
+            children.splice(insertIndex, 0, {
+                name: 'Rayon',
+                path: '/admin/rayon',
+                icon: MapPinned,
+            });
+        }
+        
+        menu[masterDataIndex] = { ...menu[masterDataIndex], children };
+    }
+    
+    return menu;
 }

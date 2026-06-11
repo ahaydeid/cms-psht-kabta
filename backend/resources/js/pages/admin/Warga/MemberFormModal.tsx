@@ -35,6 +35,8 @@ export type MemberFormData = {
     photo: File | null;
     religion: string;
     status: MemberStatus;
+    create_account?: boolean;
+    is_pengurus_cabang?: boolean;
 };
 
 type MemberFormErrors = Partial<Record<keyof MemberFormData, string>>;
@@ -92,6 +94,8 @@ const emptyFormData: MemberFormData = {
     photo: null,
     religion: 'Islam',
     status: 'active',
+    create_account: true,
+    is_pengurus_cabang: false,
 };
 
 function numericOnly(value: string) {
@@ -330,27 +334,51 @@ export function MemberFormModal({
     return (
         <Modal
             footer={
-                <>
-                    {!isFirstTab ? (
-                        <Button disabled={form.processing} icon={<ChevronLeft className="h-4 w-4" />} onClick={goToPreviousTab} size="md" variant="outline">
-                            Sebelumnya
-                        </Button>
-                    ) : (
-                        <Button disabled={form.processing} onClick={closeModal} size="md" variant="outline">
-                            Batal
-                        </Button>
-                    )}
-                    {isLastTab ? (
-                        <Button className="bg-slate-800 text-white hover:bg-slate-700" isLoading={form.processing} onClick={saveForm} size="md" type="button">
-                            {isEdit ? 'Simpan Perubahan' : 'Simpan Warga'}
-                        </Button>
-                    ) : (
-                        <Button className="bg-slate-800 text-white hover:bg-slate-700" onClick={goToNextTab} size="md" type="button">
-                            Selanjutnya
-                            <ChevronRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    )}
-                </>
+                <div className="flex w-full items-center justify-between">
+                    <div>
+                        {!isEdit ? (
+                            <div className="flex items-center gap-4">
+                                <span className="text-xs font-medium text-zinc-600">Buat Akun Login?</span>
+                                <button
+                                    className="relative inline-flex h-9 w-[120px] items-center rounded-full border border-zinc-200 bg-white p-1"
+                                    onClick={() => form.setData('create_account', !form.data.create_account)}
+                                    type="button"
+                                >
+                                    <div className="absolute flex w-full justify-between pl-[14px] pr-[18px] text-sm text-zinc-400">
+                                        <span className={form.data.create_account ? '' : 'opacity-0'}>Tidak</span>
+                                        <span className={!form.data.create_account ? '' : 'opacity-0'}>Buat</span>
+                                    </div>
+                                    <div
+                                        className={`absolute left-1 flex h-7 w-14 items-center justify-center rounded-full text-sm font-semibold text-white transition-all duration-300 ${form.data.create_account ? 'translate-x-[56px] bg-emerald-500' : 'translate-x-0 bg-slate-400'}`}
+                                    >
+                                        {form.data.create_account ? 'Buat' : 'Tidak'}
+                                    </div>
+                                </button>
+                            </div>
+                        ) : null}
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {!isFirstTab ? (
+                            <Button disabled={form.processing} icon={<ChevronLeft className="h-4 w-4" />} onClick={goToPreviousTab} size="md" variant="outline">
+                                Sebelumnya
+                            </Button>
+                        ) : (
+                            <Button disabled={form.processing} onClick={closeModal} size="md" variant="outline">
+                                Batal
+                            </Button>
+                        )}
+                        {isLastTab ? (
+                            <Button className="bg-slate-800 text-white hover:bg-slate-700" isLoading={form.processing} onClick={saveForm} size="md" type="button">
+                                {isEdit ? 'Simpan Perubahan' : 'Simpan Warga'}
+                            </Button>
+                        ) : (
+                            <Button className="bg-slate-800 text-white hover:bg-slate-700" onClick={goToNextTab} size="md" type="button">
+                                Selanjutnya
+                                <ChevronRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
+                </div>
             }
             headerMiddle={
                 <div className="flex max-w-full items-center justify-start gap-4 overflow-x-auto px-1 sm:max-w-none sm:justify-center sm:gap-6">
@@ -567,14 +595,35 @@ export function MemberFormModal({
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                            <Select error={form.errors.organization_unit_id} label="Ranting" name="organization_unit_id" onChange={(event) => form.setData('organization_unit_id', event.target.value)} value={form.data.organization_unit_id}>
-                                <option value="">Pilih Ranting</option>
-                                {organizationUnitOptions.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.name}
-                                    </option>
-                                ))}
-                            </Select>
+                            <div className="space-y-4">
+                                <Select error={form.errors.organization_unit_id} label="Ranting" name="organization_unit_id" onChange={(event) => form.setData('organization_unit_id', event.target.value)} value={form.data.organization_unit_id}>
+                                    <option value="">Pilih Ranting</option>
+                                    {organizationUnitOptions.map((option) => (
+                                        <option key={option.id} value={option.id}>
+                                            {option.name}
+                                        </option>
+                                    ))}
+                                </Select>
+
+                                <div className="flex flex-col space-y-1.5">
+                                    <span className="block text-xs font-semibold text-zinc-700">Pengurus Cabang?</span>
+                                    <button
+                                        className="relative inline-flex h-9 w-[120px] items-center rounded-full border border-zinc-200 bg-white p-1"
+                                        onClick={() => form.setData('is_pengurus_cabang', !form.data.is_pengurus_cabang)}
+                                        type="button"
+                                    >
+                                        <div className="absolute flex w-full justify-between pl-[14px] pr-[18px] text-sm text-zinc-400">
+                                            <span className={form.data.is_pengurus_cabang ? '' : 'opacity-0'}>Tidak</span>
+                                            <span className={!form.data.is_pengurus_cabang ? '' : 'opacity-0'}>Ya</span>
+                                        </div>
+                                        <div
+                                            className={`absolute left-1 flex h-7 w-14 items-center justify-center rounded-full text-sm font-semibold text-white transition-all duration-300 ${form.data.is_pengurus_cabang ? 'translate-x-[56px] bg-emerald-500' : 'translate-x-0 bg-slate-400'}`}
+                                        >
+                                            {form.data.is_pengurus_cabang ? 'Ya' : 'Tidak'}
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
                             <Input error={form.errors.legalized_at} label="Tanggal Pengesahan" name="legalized_at" onChange={(event) => form.setData('legalized_at', event.target.value)} type="date" value={form.data.legalized_at} />
                             <Input
                                 error={form.errors.legalization_place}

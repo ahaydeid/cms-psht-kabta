@@ -1,14 +1,17 @@
 import { Head } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Table } from '@/Components/Base/Table';
 import { Button } from '@/Components/ui';
 import { AdminLayout } from '@/Layouts/AdminLayout';
+import { KontributorDetailModal } from './KontributorDetailModal';
 
 type UserRecord = {
     id: number;
     name: string;
+    username?: string | null;
+    email?: string | null;
     ranting?: string | null;
     kontribusi?: {
         tulisan: number;
@@ -20,48 +23,19 @@ type KontributorProps = {
     users?: UserRecord[];
 };
 
-const fallbackUsers: UserRecord[] = [
-    {
-        id: 1,
-        name: 'Adi Hidayat',
-        ranting: 'Ciputat',
-        kontribusi: { tulisan: 12, galeri: 5 },
-    },
-    {
-        id: 2,
-        name: 'Slamet Riyadi',
-        ranting: 'Pamulang',
-        kontribusi: { tulisan: 8, galeri: 3 },
-    },
-    {
-        id: 3,
-        name: 'Ki Hajar Dewantara',
-        ranting: 'Serpong',
-        kontribusi: { tulisan: 25, galeri: 0 },
-    },
-    {
-        id: 4,
-        name: 'Raden Ajeng Kartini',
-        ranting: 'Cisauk',
-        kontribusi: { tulisan: 14, galeri: 9 },
-    },
-    {
-        id: 5,
-        name: 'Cut Nyak Dhien',
-        ranting: 'Tigaraksa',
-        kontribusi: { tulisan: 19, galeri: 2 },
-    },
-];
+
 
 export default function KontributorIndex({ users = [] }: KontributorProps) {
     const initialData = useMemo(() => {
-        return users.length > 0 ? users : fallbackUsers;
+        return users;
     }, [users]);
 
     // Search and Pagination States
     const [searchTerm, setSearchTerm] = useState('');
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
 
     // Filter Data client-side
     const filteredData = useMemo(() => {
@@ -98,14 +72,7 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
                         <h1 className="text-2xl font-semibold text-zinc-900">Data Kontributor</h1>
                     </div>
 
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
-                        <Button
-                            icon={<Plus className="size-4" />}
-                            variant="primary"
-                        >
-                            Tambah Kontributor
-                        </Button>
-
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end w-full">
                         <Table.Controls
                             rowsPerPage={rowsPerPage}
                             setRowsPerPage={setRowsPerPage}
@@ -145,17 +112,14 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
                                         <div className="flex justify-center gap-2">
                                             <Button
                                                 size="sm"
-                                                variant="warning"
-                                                icon={<Pencil className="size-3.5" />}
+                                                variant="secondary"
+                                                icon={<Eye className="size-3.5" />}
+                                                onClick={() => {
+                                                    setSelectedUser(record);
+                                                    setIsDetailOpen(true);
+                                                }}
                                             >
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="danger"
-                                                icon={<Trash2 className="size-3.5" />}
-                                            >
-                                                Hapus
+                                                Detail
                                             </Button>
                                         </div>
                                     </Table.Td>
@@ -177,6 +141,14 @@ export default function KontributorIndex({ users = [] }: KontributorProps) {
                     />
                 </div>
             </Table.Root>
+            <KontributorDetailModal
+                open={isDetailOpen}
+                user={selectedUser}
+                onClose={() => {
+                    setIsDetailOpen(false);
+                    setTimeout(() => setSelectedUser(null), 300);
+                }}
+            />
         </AdminLayout>
     );
 }

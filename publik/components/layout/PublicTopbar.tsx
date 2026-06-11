@@ -1,4 +1,4 @@
-import { ChevronDown, User2 } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { cn } from '../../lib/cn';
@@ -129,16 +129,7 @@ export function PublicTopbar() {
                         );
                     })}
                 </nav>
-
-                <Link
-                    className={cn(
-                        'inline-flex size-7 items-center justify-center rounded-full bg-slate-700 text-white/80 transition hover:bg-slate-800',
-                    )}
-                    href="/admin/login"
-                    title="Masuk admin"
-                >
-                    <User2 className="size-5" />
-                </Link>
+                <div className="w-7 shrink-0 hidden lg:block" />
             </div>
         </header>
     );

@@ -24,7 +24,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'legalized_at',
     'legalization_place',
     'status',
-    'photo_path'
+    'photo_path',
+    'is_pengurus_cabang'
 ])]
 class Keanggotaan extends Model
 {
@@ -33,6 +34,7 @@ class Keanggotaan extends Model
     protected $casts = [
         'birth_date' => 'date',
         'legalized_at' => 'date',
+        'is_pengurus_cabang' => 'boolean',
     ];
 
     protected $appends = ['photo_url'];
@@ -40,6 +42,11 @@ class Keanggotaan extends Model
     public function ranting(): BelongsTo
     {
         return $this->belongsTo(Ranting::class, 'ranting_id');
+    }
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(User::class);
     }
 
     public function getPhotoUrlAttribute(): ?string

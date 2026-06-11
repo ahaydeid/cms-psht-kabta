@@ -13,6 +13,7 @@ import Berita from './Berita';
 import BeritaDetail from './BeritaDetail';
 import Galeri from './Galeri';
 import Jadwal from './Jadwal';
+import Agenda from './Agenda';
 import Kontak from './Kontak';
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
     }
     if (path === '/galeri') return <Galeri />;
     if (path === '/jadwal') return <Jadwal />;
+    if (path === '/agenda') return <Agenda />;
     if (path === '/kontak') return <Kontak />;
 
     // Fallback: 404 page

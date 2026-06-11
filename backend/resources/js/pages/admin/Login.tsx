@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { LoadingOverlay } from '@/Components/ui';
 
 type LoginForm = {
-    email: string;
+    username: string;
     password: string;
     remember: boolean;
 };
@@ -12,7 +12,7 @@ type LoginForm = {
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const form = useForm<LoginForm>({
-        email: '',
+        username: '',
         password: '',
         remember: false,
     });
@@ -22,7 +22,7 @@ export default function Login() {
 
         form.transform((data) => ({
             ...data,
-            email: data.email.trim().toLowerCase(),
+            username: data.username.trim(),
         }));
 
         form.post('/admin/login', {
@@ -50,7 +50,7 @@ export default function Login() {
                     </div>
 
                     <div className="flex flex-col justify-center px-6 py-10 md:px-14 md:py-0">
-                        <h1 className="mb-2 text-2xl font-semibold text-yellow-600">
+                        <h1 className="mb-2 text-2xl font-semibold text-rose-500">
                             LogIn
                         </h1>
                         <p className="mb-8 text-sm text-slate-500">
@@ -60,19 +60,19 @@ export default function Login() {
                         <form className="mt-6" onSubmit={submit}>
                             <label className="mb-4 block">
                                 <span className="ml-0.5 block text-xs font-medium text-gray-700">
-                                    Email
+                                    Username
                                 </span>
                                 <input
                                     className="w-full rounded-none border-0 border-b border-gray-300 bg-transparent px-1 py-2 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-yellow-600"
-                                    type="email"
-                                    value={form.data.email}
-                                    onChange={(event) => form.setData('email', event.target.value)}
-                                    autoComplete="email"
+                                    type="text"
+                                    value={form.data.username}
+                                    onChange={(event) => form.setData('username', event.target.value)}
+                                    autoComplete="username"
                                     disabled={form.processing}
                                     required
                                 />
-                                {form.errors.email ? (
-                                    <p className="mt-1 text-xs text-red-600">{form.errors.email}</p>
+                                {form.errors.username ? (
+                                    <p className="mt-1 text-xs text-red-600">{form.errors.username}</p>
                                 ) : null}
                             </label>
 
@@ -124,7 +124,7 @@ export default function Login() {
                             </div>
 
                             <button
-                                className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-yellow-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-yellow-700 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                                className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-rose-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                                 type="submit"
                                 disabled={form.processing}
                             >
@@ -133,7 +133,7 @@ export default function Login() {
                             </button>
 
                             <p className="mt-3 text-center text-xs text-gray-500">
-                                Email menggunakan akun yang telah terdaftar pada sistem.
+                                Login menggunakan Username (NIW) yang telah terdaftar pada sistem.
                             </p>
                         </form>
                     </div>

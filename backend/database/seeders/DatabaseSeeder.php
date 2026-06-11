@@ -15,28 +15,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed multi-role users
-        User::factory()->create([
-            'name' => 'Superadmin PSHT',
-            'email' => 'superadmin@pshtkabtangerang.or.id',
-            'password' => bcrypt('password'),
-            'role' => 'superadmin',
-        ]);
-
-        User::factory()->create([
-            'name' => 'Admin PSHT',
-            'email' => 'admin@pshtkabtangerang.or.id',
-            'password' => bcrypt('password'),
-            'role' => 'admin',
-        ]);
-
-        User::factory()->create([
-            'name' => 'Penulis Konten',
-            'email' => 'penulis@pshtkabtangerang.or.id',
-            'password' => bcrypt('password'),
-            'role' => 'penulis',
-        ]);
-
         // Seed default organization profile
         \App\Models\ProfilOrganisasi::setValue('name', 'PSHT Kabta');
         \App\Models\ProfilOrganisasi::setValue('eyebrow', 'Persaudaraan Setia Hati Terate');
@@ -51,26 +29,26 @@ class DatabaseSeeder extends Seeder
         $ranting1 = \App\Models\Ranting::create([
             'nama' => 'Tigaraksa',
             'alamat' => 'Tigaraksa, Tangerang',
-            'ketua' => 'Ki Hajar',
+            'ketua' => 'Mas Hajar',
             'kontak' => '081234567890',
         ]);
 
         $ranting2 = \App\Models\Ranting::create([
             'nama' => 'Cikupa',
             'alamat' => 'Cikupa, Tangerang',
-            'ketua' => 'Ki Sukowati',
+            'ketua' => 'Mas Sukowati',
             'kontak' => '081234567891',
         ]);
 
         $ranting3 = \App\Models\Ranting::create([
             'nama' => 'Balaraja',
             'alamat' => 'Balaraja, Tangerang',
-            'ketua' => 'Ki Mangun',
+            'ketua' => 'Mas Mangun',
             'kontak' => '081234567892',
         ]);
 
         // Seed some Keanggotaan (Warga)
-        \App\Models\Keanggotaan::create([
+        $warga1 = \App\Models\Keanggotaan::create([
             'ranting_id' => $ranting1->id,
             'citizenship' => 'WNI',
             'identity_type' => 'KTP/KK',
@@ -89,7 +67,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        \App\Models\Keanggotaan::create([
+        $warga2 = \App\Models\Keanggotaan::create([
             'ranting_id' => $ranting2->id,
             'citizenship' => 'WNI',
             'identity_type' => 'KTP/KK',
@@ -125,6 +103,48 @@ class DatabaseSeeder extends Seeder
             'legalized_at' => '2017-08-15',
             'legalization_place' => 'Cabang Kabupaten Tangerang',
             'status' => 'active',
+        ]);
+
+        // Seed Roles
+        $roleSuperadmin = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'superadmin']);
+        $roleAdmin = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
+        $roleKontributor = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'kontributor']);
+        $roleWarga = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'warga']);
+
+        // Seed Users
+        $superadmin = User::factory()->create([
+            'name' => 'Superadmin PSHT',
+            'username' => 'superadmin',
+            'email' => 'superadmin@pshtkabtangerang.or.id',
+            'password' => bcrypt('password'),
+            'keanggotaan_id' => null, // Superadmin tidak perlu tertaut warga
+        ]);
+        $superadmin->assignRole($roleSuperadmin);
+
+        $admin = User::factory()->create([
+            'name' => $warga1->name,
+            'username' => 'admin',
+            'email' => 'admin@pshtkabtangerang.or.id',
+            'password' => bcrypt('password'),
+            'keanggotaan_id' => $warga1->id,
+        ]);
+        $admin->assignRole($roleAdmin);
+
+        $kontributor = User::factory()->create([
+            'name' => $warga2->name,
+            'username' => 'kontributor',
+            'email' => 'kontributor@pshtkabtangerang.or.id',
+            'password' => bcrypt('password'),
+            'keanggotaan_id' => $warga2->id,
+        ]);
+        $kontributor->assignRole($roleKontributor);
+
+        // Seed default JadwalLatihan, Berita, dan Galeri menggunakan seeder terstandar
+        $this->call([
+            JadwalLatihanSeeder::class,
+            BeritaSeeder::class,
+            GaleriSeeder::class,
+            AgendaSeeder::class,
         ]);
     }
 }

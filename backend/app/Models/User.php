@@ -11,12 +11,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+#[Fillable(['name', 'email', 'username', 'password', 'keanggotaan_id', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * Get the attributes that should be cast.
@@ -28,29 +31,22 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
-    public function isSuperadmin(): bool
+    public function keanggotaan(): BelongsTo
     {
-        return $this->role === 'superadmin';
+        return $this->belongsTo(Keanggotaan::class);
     }
 
-    public function isAdmin(): bool
+    public function artikels(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->role === 'admin';
+        return $this->hasMany(Artikel::class, 'penulis_id');
     }
 
-    public function isPenulis(): bool
+    public function galeris(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->role === 'penulis';
-    }
-
-    public function hasRole(array|string $roles): bool
-    {
-        if (is_array($roles)) {
-            return in_array($this->role, $roles);
-        }
-        return $this->role === $roles;
+        return $this->hasMany(Galeri::class, 'penulis_id');
     }
 }

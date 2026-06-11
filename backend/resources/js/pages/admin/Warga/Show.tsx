@@ -31,6 +31,7 @@ type MemberDetail = {
     ranting: string;
     religion: null | string;
     status: MemberStatus;
+    isPengurusCabang: boolean;
 };
 
 type AdminWargaShowProps = {
@@ -305,6 +306,10 @@ export default function AdminWargaShow({
                                         label="Tempat Pengesahan"
                                         value={member.legalizationPlace}
                                     />
+                                    <DetailItem
+                                        label="Pengurus Cabang"
+                                        value={member.isPengurusCabang ? 'Ya' : 'Tidak'}
+                                    />
                                     <DetailBadgeItem label="Status Warga">
                                         <Badge
                                             className="justify-center border-0"
@@ -323,7 +328,7 @@ export default function AdminWargaShow({
                         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
                             {canDeleteMember ? (
                                 <Button
-                                    className="w-full rounded-full hover:border-brand-red! hover:bg-brand-red! hover:text-white! sm:w-40"
+                                    className="w-full rounded-sm hover:border-brand-red! hover:bg-brand-red! hover:text-white! sm:w-40"
                                     icon={<Trash2 className="h-4 w-4" />}
                                     onClick={handleDeleteMember}
                                     size="md"
@@ -333,11 +338,11 @@ export default function AdminWargaShow({
                                 </Button>
                             ) : null}
                             <Button
-                                className="w-full rounded-full hover:border-brand-yellow! hover:bg-brand-yellow! hover:text-brand-black! sm:w-40"
+                                className="w-full rounded-sm sm:w-40"
                                 icon={<Pencil className="h-4 w-4" />}
                                 onClick={() => setIsEditOpen(true)}
                                 size="md"
-                                variant="outline"
+                                variant="primary"
                             >
                                 Edit
                             </Button>
@@ -365,6 +370,7 @@ export default function AdminWargaShow({
                     photo_url: member.photoUrl ?? null,
                     religion: member.religion ?? '',
                     status: member.status,
+                    is_pengurus_cabang: member.isPengurusCabang,
                 }}
                 mode="edit"
                 onClose={() => setIsEditOpen(false)}

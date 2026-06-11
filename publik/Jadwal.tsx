@@ -1,8 +1,10 @@
 import { Clock3, MapPin, PhoneCall } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { PublicLayout } from './components/layout/PublicLayout';
+import { PublicCombobox } from './components/common/PublicCombobox';
 import { Head } from './runtime/inertia-shim';
+import { API_BASE_URL } from './lib/config';
 
 type ScheduleLocation = {
     address: string;
@@ -98,15 +100,121 @@ function buildGoogleMapsUrl(latitude: number, longitude: number) {
 
 function splitScheduleDays(day: string) {
     return day
-        .replace(/\s+dan\s+/gi, ', ')
-        .split(',')
+        .split(/,|\s+dan\s+/)
         .map((scheduleDay) => scheduleDay.trim())
         .filter(Boolean);
 }
 
 export default function Jadwal() {
-    const [selectedLocationId, setSelectedLocationId] = useState(scheduleLocations[0].id);
-    const selectedLocation = scheduleLocations.find((location) => location.id === selectedLocationId) ?? scheduleLocations[0];
+    const [locations, setLocations] = useState<ScheduleLocation[]>([]);
+    const [selectedLocationId, setSelectedLocationId] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchJadwal = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/jadwal`);
+                if (!response.ok) {
+                    throw new Error('Gagal memuat jadwal latihan dari server.');
+                }
+                const data = await response.json();
+                
+                // Grouping berdasarkan nama tempat
+                const groupedMap: Record<string, any[]> = {};
+                data.forEach((item: any) => {
+                    if (!item.tempat) return;
+                    const key = item.tempat.trim().toLowerCase();
+                    if (!groupedMap[key]) {
+                        groupedMap[key] = [];
+                    }
+                    groupedMap[key].push(item);
+                });
+
+                const HARI_ORDER = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+                const mapped: ScheduleLocation[] = Object.keys(groupedMap).map((key) => {
+                    const items = groupedMap[key];
+                    
+                    // Urutkan items berdasarkan urutan hari
+                    items.sort((a, b) => HARI_ORDER.indexOf(a.hari) - HARI_ORDER.indexOf(b.hari));
+
+                    // Gabungkan hari
+                    const haris = items.map((i) => i.hari.trim());
+                    let dayString = '';
+                    if (haris.length === 1) {
+                        dayString = haris[0];
+                    } else if (haris.length === 2) {
+                        dayString = `${haris[0]} dan ${haris[1]}`;
+                    } else if (haris.length > 2) {
+                        dayString = haris.slice(0, -1).join(', ') + ', dan ' + haris[haris.length - 1];
+                    }
+
+                    // Gabungkan waktu/jam secara unik
+                    const waktus = Array.from(new Set(items.map((i) => (i.waktu || '').trim()).filter(Boolean)));
+                    let timeString = '';
+                    if (waktus.length === 1) {
+                        timeString = waktus[0];
+                    } else if (waktus.length === 2) {
+                        timeString = `${waktus[0]} dan ${waktus[1]}`;
+                    } else if (waktus.length > 2) {
+                        timeString = waktus.slice(0, -1).join(', ') + ', dan ' + waktus[waktus.length - 1];
+                    }
+
+                    const firstItem = items[0];
+
+                    return {
+                        id: key,
+                        label: firstItem.tempat.trim(),
+                        address: firstItem.alamat || '',
+                        contact: firstItem.kontak || '',
+                        day: dayString,
+                        time: timeString,
+                        latitude: Number(firstItem.latitude) || 0,
+                        longitude: Number(firstItem.longitude) || 0,
+                    };
+                });
+                
+                setLocations(mapped);
+                if (mapped.length > 0) {
+                    setSelectedLocationId(mapped[0].id);
+                }
+            } catch (err: any) {
+                console.error(err);
+                setError(err.message || 'Terjadi kesalahan saat memuat jadwal.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchJadwal();
+    }, []);
+
+    if (loading) {
+        return (
+            <PublicLayout>
+                <Head title="Jadwal" />
+                <main className="flex min-h-[calc(100dvh-8rem)] flex-1 items-center justify-center bg-white">
+                    <p className="text-sm text-zinc-500 font-medium animate-pulse">Memuat jadwal latihan...</p>
+                </main>
+            </PublicLayout>
+        );
+    }
+
+    if (error || locations.length === 0) {
+        return (
+            <PublicLayout>
+                <Head title="Jadwal" />
+                <main className="flex min-h-[calc(100dvh-8rem)] flex-1 items-center justify-center bg-white px-4">
+                    <div className="text-center">
+                        <p className="text-sm font-semibold text-red-600">Terjadi Kesalahan</p>
+                        <p className="mt-1 text-sm text-zinc-500">{error || 'Tidak ada data jadwal latihan yang tersedia saat ini.'}</p>
+                    </div>
+                </main>
+            </PublicLayout>
+        );
+    }
+
+    const selectedLocation = locations.find((location) => location.id === selectedLocationId) ?? locations[0];
     const selectedScheduleDays = splitScheduleDays(selectedLocation.day);
 
     return (
@@ -115,19 +223,13 @@ export default function Jadwal() {
             <main className="flex min-h-[calc(100dvh-8rem)] flex-1 items-center overflow-hidden px-4 py-6 sm:px-6 lg:min-h-[calc(100dvh-4rem)] lg:px-8">
                 <section className="mx-auto flex w-full max-w-7xl flex-col overflow-hidden">
                     <div className="flex shrink-0 flex-col gap-4 border-b border-zinc-200 py-5 lg:flex-row lg:items-end">
-                        <label className="block lg:w-80">
-                            <select
-                                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950"
-                                onChange={(event) => setSelectedLocationId(event.target.value)}
+                        <div className="w-full lg:w-80">
+                            <PublicCombobox
+                                options={locations.map((location) => ({ value: location.id, label: location.label }))}
                                 value={selectedLocationId}
-                            >
-                                {scheduleLocations.map((location) => (
-                                    <option key={location.id} value={location.id}>
-                                        {location.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
+                                onChange={(val) => setSelectedLocationId(val)}
+                            />
+                        </div>
                     </div>
 
                     <div className="grid min-h-0 flex-1 gap-0 lg:grid-cols-2">
@@ -161,7 +263,7 @@ export default function Jadwal() {
                                         </div>
                                         <div>
                                             <p className="text-sm font-semibold text-zinc-950">Kontak yang dapat dihubungi</p>
-                                            <p className="mt-2 text-sm leading-7 text-zinc-600">{selectedLocation.contact}</p>
+                                            <p className="mt-2 text-sm leading-7 text-zinc-600">{selectedLocation.contact || '-'}</p>
                                         </div>
                                     </div>
                                 </article>
@@ -173,7 +275,7 @@ export default function Jadwal() {
                                         </div>
                                         <div>
                                             <p className="text-sm font-semibold text-zinc-950">Lokasi latihan</p>
-                                            <p className="mt-2 text-sm leading-7 text-zinc-600">{selectedLocation.address}</p>
+                                            <p className="mt-2 text-sm leading-7 text-zinc-600">{selectedLocation.address || '-'}</p>
                                         </div>
                                     </div>
                                 </article>
@@ -183,30 +285,40 @@ export default function Jadwal() {
                         <div className="flex min-h-0 flex-col overflow-hidden lg:pl-6">
                             <div className="flex items-center py-4 sm:pl-6">
                                 <p className="ml-auto text-right text-xs text-zinc-500">
-                                    {selectedLocation.latitude}, {selectedLocation.longitude}
+                                    {selectedLocation.latitude !== 0 || selectedLocation.longitude !== 0 
+                                        ? `${selectedLocation.latitude}, ${selectedLocation.longitude}` 
+                                        : 'Koordinat belum diset'}
                                 </p>
                             </div>
 
                             <div className="min-h-112 flex-1 overflow-hidden rounded-xl bg-zinc-100 sm:min-h-144 lg:min-h-0">
-                                <iframe
-                                    className="h-full w-full"
-                                    loading="lazy"
-                                    src={buildMapEmbedUrl(selectedLocation.latitude, selectedLocation.longitude)}
-                                    title={`Peta ${selectedLocation.label}`}
-                                />
+                                {selectedLocation.latitude !== 0 || selectedLocation.longitude !== 0 ? (
+                                    <iframe
+                                        className="h-full w-full"
+                                        loading="lazy"
+                                        src={buildMapEmbedUrl(selectedLocation.latitude, selectedLocation.longitude)}
+                                        title={`Peta ${selectedLocation.label}`}
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center bg-zinc-100 text-zinc-400 text-xs">
+                                        Peta tidak tersedia
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
                     <div className="flex shrink-0 justify-start py-4 lg:justify-end">
-                        <a
-                            className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
-                            href={buildGoogleMapsUrl(selectedLocation.latitude, selectedLocation.longitude)}
-                            rel="noreferrer"
-                            target="_blank"
-                        >
-                            Buka di Google Maps
-                        </a>
+                        {selectedLocation.latitude !== 0 || selectedLocation.longitude !== 0 ? (
+                            <a
+                                className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                                href={buildGoogleMapsUrl(selectedLocation.latitude, selectedLocation.longitude)}
+                                rel="noreferrer"
+                                target="_blank"
+                            >
+                                Buka di Google Maps
+                            </a>
+                        ) : null}
                     </div>
                 </section>
             </main>

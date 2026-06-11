@@ -5,8 +5,10 @@ import {
     Building2,
     UsersRound,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import { AdminLayout } from '@/Layouts/AdminLayout';
+import { cn } from '@/lib/cn';
 
 type Stats = {
     artikels_count: number;
@@ -17,18 +19,21 @@ type Stats = {
     pesan_unread_count: number;
 };
 
-type DashboardProps = {
-    stats: Stats;
+type TrendItem = {
+    label: string;
+    value: number;
 };
 
-const LatihanTrend = [
-    { label: 'Jan', value: 42 },
-    { label: 'Feb', value: 58 },
-    { label: 'Mar', value: 64 },
-    { label: 'Apr', value: 73 },
-    { label: 'Mei', value: 88 },
-    { label: 'Jun', value: 96 },
-];
+type RantingWargaItem = {
+    name: string;
+    value: number;
+};
+
+type DashboardProps = {
+    stats: Stats;
+    mediaTrend: TrendItem[];
+    rantingWarga: RantingWargaItem[];
+};
 
 function DonutChart({
     data,
@@ -41,6 +46,14 @@ function DonutChart({
     outerRadius?: number;
     size?: number;
 }) {
+    const [hoveredItem, setHoveredItem] = useState<{
+        name: string;
+        value: number;
+        percentage: number;
+        x: number;
+        y: number;
+    } | null>(null);
+
     const fallbackData = data.every((item) => item.value === 0)
         ? data.map((item) => ({ ...item, value: 1 }))
         : data;
@@ -49,30 +62,74 @@ function DonutChart({
     const circumference = 2 * Math.PI * radius;
     let accumulated = 0;
 
-    return (
-        <svg className="-rotate-90" height={size} viewBox={`0 0 ${size} ${size}`} width={size}>
-            {fallbackData.map((item) => {
-                const percentage = (item.value / total) * 100;
-                const dashArray = (percentage / 100) * circumference;
-                const offset = (accumulated / 100) * circumference;
-                accumulated += percentage;
+    // Hitung total warga riil dari data asli
+    const realTotal = data.reduce((sum, item) => sum + item.value, 0);
 
-                return (
-                    <circle
-                        className={item.colorClass}
-                        cx={size / 2}
-                        cy={size / 2}
-                        fill="transparent"
-                        key={item.name}
-                        r={radius}
-                        stroke="currentColor"
-                        strokeDasharray={`${dashArray} ${circumference}`}
-                        strokeDashoffset={-offset}
-                        strokeWidth={outerRadius - innerRadius}
-                    />
-                );
-            })}
-        </svg>
+    return (
+        <>
+            <svg className="-rotate-90" height={size} viewBox={`0 0 ${size} ${size}`} width={size}>
+                {fallbackData.map((item) => {
+                    const percentage = (item.value / total) * 100;
+                    const dashArray = (percentage / 100) * circumference;
+                    const offset = (accumulated / 100) * circumference;
+                    accumulated += percentage;
+
+                    const realPercentage = realTotal > 0 ? (item.value / realTotal) * 100 : 0;
+
+                    return (
+                        <circle
+                            className={cn(item.colorClass, "cursor-pointer transition-all duration-200 hover:opacity-80")}
+                            cx={size / 2}
+                            cy={size / 2}
+                            fill="transparent"
+                            key={item.name}
+                            onMouseEnter={(e) => {
+                                setHoveredItem({
+                                    name: item.name,
+                                    value: item.value,
+                                    percentage: realPercentage,
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                });
+                            }}
+                            onMouseMove={(e) => {
+                                setHoveredItem((prev) =>
+                                    prev ? { ...prev, x: e.clientX, y: e.clientY } : null
+                                );
+                            }}
+                            onMouseLeave={() => setHoveredItem(null)}
+                            r={radius}
+                            stroke="currentColor"
+                            strokeDasharray={`${dashArray} ${circumference}`}
+                            strokeDashoffset={-offset}
+                            strokeWidth={outerRadius - innerRadius}
+                        />
+                    );
+                })}
+            </svg>
+
+            {hoveredItem && (
+                <div
+                    className="fixed z-[9999] pointer-events-none rounded bg-zinc-900/95 px-2.5 py-1.5 text-xs text-zinc-100 shadow-lg border border-zinc-700/30 transition-all duration-75"
+                    style={{
+                        left: hoveredItem.x + 12,
+                        top: hoveredItem.y - 12,
+                    }}
+                >
+                    <div className="font-semibold text-white">Ranting {hoveredItem.name}</div>
+                    <div className="text-zinc-300 mt-0.5">
+                        {hoveredItem.value === 0 ? (
+                            '-'
+                        ) : (
+                            <>
+                                <strong className="font-bold text-white">{hoveredItem.value}</strong> Warga
+                            </>
+                        )}{' '}
+                        ({hoveredItem.percentage.toFixed(1).replace('.0', '')}%)
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
 
@@ -138,20 +195,17 @@ function LineTrendChart({ data, height = 220 }: { data: Array<{ label: string; v
     );
 }
 
-function FeatureBarChart({ data }: { data: Array<{ barClass: string; name: string; value: number }> }) {
-    return (
-        <div className="flex h-56 items-end justify-between gap-3 px-2 pb-6 pt-8">
-            {data.map((item) => (
-                <div className="flex h-full flex-1 flex-col items-center justify-end" key={item.name}>
-                    <div className={`min-h-1.5 w-full rounded-t-sm ${item.barClass}`} style={{ height: `${item.value}%` }} />
-                    <div className="mt-2 text-center text-[10px] leading-tight text-zinc-500">{item.name}</div>
-                </div>
-            ))}
-        </div>
-    );
-}
+const COLOR_PALETTE = [
+    { colorClass: 'text-sky-400', dotClass: 'bg-sky-400' },
+    { colorClass: 'text-emerald-400', dotClass: 'bg-emerald-400' },
+    { colorClass: 'text-amber-400', dotClass: 'bg-amber-400' },
+    { colorClass: 'text-rose-400', dotClass: 'bg-rose-400' },
+    { colorClass: 'text-violet-400', dotClass: 'bg-violet-400' },
+    { colorClass: 'text-indigo-400', dotClass: 'bg-indigo-400' },
+    { colorClass: 'text-fuchsia-400', dotClass: 'bg-fuchsia-400' },
+];
 
-export default function Dashboard({ stats }: DashboardProps) {
+export default function Dashboard({ stats, mediaTrend, rantingWarga }: DashboardProps) {
     const cards = [
         {
             helper: 'Warga terdaftar',
@@ -187,20 +241,16 @@ export default function Dashboard({ stats }: DashboardProps) {
         },
     ];
 
-    const komposisiAnggota = [
-        { name: 'Siswa Aktif', value: 0, colorClass: 'text-sky-400', dotClass: 'bg-sky-400' },
-        { name: 'Warga', value: stats.anggota_count || 0, colorClass: 'text-slate-500', dotClass: 'bg-slate-500' },
-        { name: 'Pelatih', value: 0, colorClass: 'text-emerald-400', dotClass: 'bg-emerald-400' },
-    ];
+    const komposisiRanting = (rantingWarga || []).map((item, idx) => {
+        const palette = COLOR_PALETTE[idx % COLOR_PALETTE.length];
+        return {
+            ...item,
+            colorClass: palette.colorClass,
+            dotClass: palette.dotClass,
+        };
+    });
 
-    const modulHealth = [
-        { name: 'Master', value: 35, barClass: 'bg-sky-400' },
-        { name: 'Absensi', value: 20, barClass: 'bg-emerald-400' },
-        { name: 'Pengaturan', value: 55, barClass: 'bg-indigo-400' },
-        { name: 'Laporan', value: 10, barClass: 'bg-slate-400' },
-    ];
-
-    const totalAnggota = stats.anggota_count || 0;
+    const totalWarga = stats.anggota_count || 0;
 
     return (
         <AdminLayout>
@@ -228,41 +278,46 @@ export default function Dashboard({ stats }: DashboardProps) {
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
                         <div className="rounded-lg border border-zinc-200 bg-white p-5 lg:col-span-2">
                             <h3 className="mb-4 flex items-center justify-between text-sm font-bold text-zinc-700">
-                                <span>Perkembangan Kehadiran Latihan</span>
-                                <span className="text-indigo-500 text-xs font-semibold">Semua Wilayah</span>
+                                <span>Tren Publikasi Media</span>
+                                <span className="text-indigo-500 text-xs font-semibold">6 Bulan Terakhir</span>
                             </h3>
                             <div className="h-60">
-                                <LineTrendChart data={LatihanTrend} />
+                                <LineTrendChart data={mediaTrend} />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:col-span-2">
-                            <div className="rounded-lg border border-zinc-200 bg-white p-5">
-                                <h3 className="mb-4 text-sm font-bold text-zinc-700">Komposisi Anggota</h3>
-                                <div className="relative flex h-40 items-center justify-center">
-                                    <DonutChart data={komposisiAnggota} />
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-xl font-extrabold text-zinc-800">{totalAnggota}</span>
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400">Total</span>
+                        <div className="rounded-lg border border-zinc-200 bg-white p-5 lg:col-span-2">
+                            <h3 className="mb-4 text-sm font-bold text-zinc-700">Komposisi Warga per Ranting</h3>
+                            <div className="flex flex-col sm:flex-row items-center justify-around gap-6 h-64">
+                                <div className="relative flex items-center justify-center shrink-0">
+                                    <DonutChart data={komposisiRanting} size={220} innerRadius={70} outerRadius={98} />
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                        <span className="text-2xl font-extrabold text-zinc-800">{totalWarga}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Warga</span>
                                     </div>
                                 </div>
-                                <div className="mt-4 space-y-2">
-                                    {komposisiAnggota.map((item) => (
-                                        <div className="flex items-center justify-between text-xs" key={item.name}>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`h-2 w-2 rounded-full ${item.dotClass}`} />
-                                                <span className="font-medium text-zinc-600">{item.name}</span>
+                                <div className="w-full space-y-2 max-h-56 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
+                                    {komposisiRanting.length === 0 ? (
+                                        <div className="text-center text-xs text-zinc-400 py-2">Tidak ada data ranting</div>
+                                    ) : (
+                                        komposisiRanting.map((item) => (
+                                            <div className="flex items-center justify-between text-xs border-b border-zinc-50 pb-1.5 last:border-0" key={item.name}>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`h-2 w-2 rounded-full ${item.dotClass}`} />
+                                                    <span className="font-medium text-zinc-600 truncate max-w-[200px]">{item.name}</span>
+                                                </div>
+                                                <span className="font-normal text-zinc-600">
+                                                    {item.value === 0 ? (
+                                                        '-'
+                                                    ) : (
+                                                        <>
+                                                            <strong className="font-bold text-zinc-800">{item.value}</strong> Warga
+                                                        </>
+                                                    )}
+                                                </span>
                                             </div>
-                                            <span className="font-bold text-zinc-800">{item.value}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="rounded-lg border border-zinc-200 bg-white p-5">
-                                <h3 className="mb-4 text-sm font-bold text-zinc-700">Kesiapan Modul</h3>
-                                <div className="h-56">
-                                    <FeatureBarChart data={modulHealth} />
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -44,12 +44,31 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role' => $user->role,
+                    'role' => $user->roles->first()?->name,
+                    'photo' => $user->keanggotaan?->photo_url,
                 ] : null,
                 'organizationUnit' => [
                     'name' => 'PSHT Kabta',
                 ],
-                'roles' => $user ? [$user->role] : [],
+                'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
+                'drafts_count' => $user ? (function () use ($user) {
+                    $isSuperadmin = $user->hasRole('superadmin');
+                    $adminRantingId = $isSuperadmin ? null : $user->keanggotaan?->ranting_id;
+
+                    $beritaQuery = \App\Models\Artikel::where('status', 'draft');
+                    $galeriQuery = \App\Models\Galeri::where('status', 'inactive');
+
+                    if (!$isSuperadmin && $adminRantingId) {
+                        $beritaQuery->whereHas('penulis.keanggotaan', function ($q) use ($adminRantingId) {
+                            $q->where('ranting_id', $adminRantingId);
+                        });
+                        $galeriQuery->whereHas('penulis.keanggotaan', function ($q) use ($adminRantingId) {
+                            $q->where('ranting_id', $adminRantingId);
+                        });
+                    }
+
+                    return $beritaQuery->count() + $galeriQuery->count();
+                })() : 0,
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),

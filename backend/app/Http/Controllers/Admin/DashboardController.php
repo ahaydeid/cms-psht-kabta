@@ -24,8 +24,38 @@ class DashboardController extends Controller
             'pesan_unread_count' => PesanKontak::where('is_read', false)->count(),
         ];
 
+        // Tren publikasi media 6 buffer terakhir
+        $mediaTrend = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthLabel = $date->format('M');
+            $month = $date->month;
+            $year = $date->year;
+
+            $artikelCount = Artikel::whereMonth('created_at', $month)->whereYear('created_at', $year)->count();
+            $galeriCount = Galeri::whereMonth('created_at', $month)->whereYear('created_at', $year)->count();
+
+            $mediaTrend->push([
+                'label' => $monthLabel,
+                'value' => $artikelCount + $galeriCount,
+            ]);
+        }
+
+        // Data komposisi warga tiap ranting
+        $rantingWarga = Ranting::withCount('anggota')
+            ->orderByDesc('anggota_count')
+            ->get()
+            ->map(function ($ranting) {
+                return [
+                    'name' => $ranting->nama,
+                    'value' => $ranting->anggota_count,
+                ];
+            });
+
         return Inertia::render('admin/Dashboard', [
-            'stats' => $stats
+            'stats' => $stats,
+            'mediaTrend' => $mediaTrend->toArray(),
+            'rantingWarga' => $rantingWarga->toArray(),
         ]);
     }
 }

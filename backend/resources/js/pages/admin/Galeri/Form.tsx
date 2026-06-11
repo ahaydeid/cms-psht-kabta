@@ -94,6 +94,17 @@ export default function GaleriForm({ galeri }: FormProps) {
     };
 
     const handleCancel = async () => {
+        const hasInputs = !isEdit && (
+            data.judul.trim() !== '' ||
+            data.keterangan.trim() !== '' ||
+            newImages.length > 0
+        );
+
+        if (!isEdit && !hasInputs) {
+            window.location.href = '/admin/galeri';
+            return;
+        }
+
         const result = await confirmAction({
             title: isEdit ? 'Batalkan perubahan galeri?' : 'Batalkan pembuatan galeri?',
             text: 'Informasi dan foto yang sudah diunggah akan dibuang.',

@@ -1,22 +1,95 @@
 import { useState } from 'react';
-import { Search, User2 } from 'lucide-react';
+import { Search, User2, Loader2 } from 'lucide-react';
 
 import { PublicLayout } from './components/layout/PublicLayout';
-import { dummyMembers, type DummyMember } from './data/dummyMembers';
 import { Head, Link } from './runtime/inertia-shim';
+import { API_BASE_URL } from './lib/config';
 
-const displayValue = (value: string) => value.trim() || '-';
+type KeanggotaanData = {
+    id: number;
+    ranting_id: number;
+    citizenship: string;
+    identity_type: string;
+    identity_number: string | null;
+    member_number: string;
+    name: string;
+    birth_place: string | null;
+    birth_date: string | null;
+    gender: string;
+    religion: string | null;
+    address: string | null;
+    occupation: string | null;
+    phone: string | null;
+    legalized_at: string | null;
+    legalization_place: string | null;
+    status: string;
+    photo_path: string | null;
+    photo_url: string | null;
+    is_pengurus_cabang: boolean;
+    ranting?: {
+        id: number;
+        nama: string;
+    } | null;
+};
+
+const displayValue = (value: string | null | undefined) => {
+    if (!value) return '-';
+    return value.trim() || '-';
+};
+
+const getStatusLabel = (status: string) => {
+    switch (status) {
+        case 'active': return 'Aktif';
+        case 'inactive': return 'Tidak Aktif';
+        case 'transferred': return 'Mutasi';
+        case 'deceased': return 'Wafat';
+        default: return status;
+    }
+};
+
+const getStatusColor = (status: string) => {
+    switch (status) {
+        case 'active': return 'bg-emerald-600 text-white';
+        case 'inactive': return 'bg-zinc-500 text-white';
+        case 'transferred': return 'bg-blue-600 text-white';
+        case 'deceased': return 'bg-red-600 text-white';
+        default: return 'bg-zinc-600 text-white';
+    }
+};
 
 export default function ProfilKeanggotaan() {
     const [query, setQuery] = useState('');
-    const [result, setResult] = useState<DummyMember | null>(null);
+    const [result, setResult] = useState<KeanggotaanData | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const searchMember = () => {
-        const normalizedQuery = query.trim().toLowerCase();
+    const searchMember = async () => {
+        const normalizedQuery = query.trim();
+        if (!normalizedQuery) return;
 
+        setLoading(true);
+        setError(null);
         setHasSearched(true);
-        setResult(dummyMembers.find((member) => member.niw.toLowerCase() === normalizedQuery) ?? null);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/v1/keanggotaan/cari?niw=${encodeURIComponent(normalizedQuery)}`);
+            if (!response.ok) {
+                throw new Error('Gagal melakukan pencarian warga.');
+            }
+            const data = await response.json();
+            if (data && typeof data === 'object' && 'id' in data) {
+                setResult(data);
+            } else {
+                setResult(null);
+            }
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || 'Terjadi kesalahan saat mencari data warga.');
+            setResult(null);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -45,10 +118,15 @@ export default function ProfilKeanggotaan() {
                                 value={query}
                             />
                             <button
-                                className="inline-flex min-h-14 shrink-0 items-center justify-center gap-2 rounded-r-full bg-brand-black px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800 sm:px-6"
+                                className="inline-flex min-h-14 shrink-0 items-center justify-center gap-2 rounded-r-full bg-brand-black px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800 sm:px-6 disabled:opacity-75"
                                 type="submit"
+                                disabled={loading}
                             >
-                                <Search className="size-4" />
+                                {loading ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                ) : (
+                                    <Search className="size-4" />
+                                )}
                                 <span className="hidden sm:inline">Cari</span>
                             </button>
                         </form>
@@ -56,15 +134,31 @@ export default function ProfilKeanggotaan() {
                 </div>
 
                 <div aria-live="polite" className="row-start-3 mt-4 w-full max-w-4xl justify-self-center">
-                        {result ? (
+                        {loading && (
+                            <div className="flex justify-center py-8">
+                                <Loader2 className="size-8 animate-spin text-zinc-500" />
+                            </div>
+                        )}
+
+                        {!loading && error && (
+                            <p className="border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+                                {error}
+                            </p>
+                        )}
+
+                        {!loading && !error && result && (
                             <Link
                                 className="group block border border-zinc-200 bg-white p-4 transition hover:border-brand-black focus:outline-none focus:ring-2 focus:ring-brand-black/20 sm:p-5"
                                 href={`/profil/keanggotaan/${result.id}`}
                             >
                                 <article className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
                                     <div className="flex items-center gap-3 sm:contents">
-                                        <div className="flex aspect-square w-16 shrink-0 items-center justify-center rounded-full border border-slate-600 bg-white text-slate-600 sm:w-28 sm:self-center">
-                                            <User2 className="size-8 sm:size-15" />
+                                        <div className="flex aspect-square w-16 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white overflow-hidden text-slate-600 sm:w-28 sm:self-center">
+                                            {result.photo_url ? (
+                                                <img alt={result.name} className="h-full w-full object-cover" src={result.photo_url} />
+                                            ) : (
+                                                <User2 className="size-8 sm:size-15" />
+                                            )}
                                         </div>
                                         <div className="min-w-0 flex-1 sm:hidden">
                                             <div className="flex items-start justify-between gap-3">
@@ -81,21 +175,21 @@ export default function ProfilKeanggotaan() {
                                         <dl className="mt-4 grid gap-3 text-sm text-zinc-600 sm:grid-cols-4">
                                             <div>
                                                 <dt className="font-semibold text-zinc-950">NIW</dt>
-                                                <dd className="mt-1">{displayValue(result.niw)}</dd>
+                                                <dd className="mt-1">{displayValue(result.member_number)}</dd>
                                             </div>
                                             <div>
                                                 <dt className="font-semibold text-zinc-950">Ranting</dt>
-                                                <dd className="mt-1">{displayValue(result.ranting)}</dd>
+                                                <dd className="mt-1">{displayValue(result.ranting?.nama)}</dd>
                                             </div>
                                             <div>
-                                                <dt className="font-semibold text-zinc-950">Rayon</dt>
-                                                <dd className="mt-1">{displayValue(result.rayon)}</dd>
+                                                <dt className="font-semibold text-zinc-950">Jenis Kelamin</dt>
+                                                <dd className="mt-1">{displayValue(result.gender)}</dd>
                                             </div>
                                             <div>
                                                 <dt className="font-semibold text-zinc-950">Status</dt>
                                                 <dd className="mt-1">
-                                                    <span className="inline-flex rounded-full bg-emerald-600 text-white px-2.5 py-1 text-xs font-medium">
-                                                        {displayValue(result.status)}
+                                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getStatusColor(result.status)}`}>
+                                                        {getStatusLabel(result.status)}
                                                     </span>
                                                 </dd>
                                             </div>
@@ -103,12 +197,12 @@ export default function ProfilKeanggotaan() {
                                     </div>
                                 </article>
                             </Link>
-                        ) : (
-                            hasSearched && (
-                                <p className="border border-zinc-200 bg-white p-4 text-sm font-medium text-zinc-600">
-                                    Data warga tidak ditemukan.
-                                </p>
-                            )
+                        )}
+
+                        {!loading && !error && hasSearched && !result && (
+                            <p className="text-center text-lg sm:text-xl border border-rose-200 bg-rose-50 font-normal text-rose-600 py-4">
+                                Data warga tidak ditemukan.
+                            </p>
                         )}
                 </div>
             </main>

@@ -63,10 +63,13 @@ function findAncestorKeys(items: MenuItem[], activePath?: string, ancestors: str
 export function AdminSidebar({ isMobileOpen = false, isOpen, onCloseMobile, onToggle }: AdminSidebarProps) {
     const { props, url } = usePage<{
         auth?: {
-            access?: any;
+            user?: {
+                role?: string;
+            };
+            drafts_count?: number;
         };
     }>();
-    const menuItems = useMemo(() => buildAdminMenu(props.auth?.access ?? {}), [props.auth?.access]);
+    const menuItems = useMemo(() => buildAdminMenu(props.auth?.user?.role), [props.auth?.user?.role]);
 
     const allPaths = useMemo(() => collectPaths(menuItems), [menuItems]);
     const activePath = useMemo(
@@ -132,7 +135,19 @@ export function AdminSidebar({ isMobileOpen = false, isOpen, onCloseMobile, onTo
             ) : null;
 
             const label = (isOpen || isMobileOpen) ? (
-                <span className="truncate">{level > 1 ? `• ${item.name}` : item.name}</span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="truncate">{level > 1 ? `• ${item.name}` : item.name}</span>
+                    {item.name === 'Draft' && props.auth?.drafts_count && props.auth.drafts_count > 0 ? (
+                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                            {props.auth.drafts_count}
+                        </span>
+                    ) : null}
+                    {item.name === 'Pesan' ? (
+                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                            3
+                        </span>
+                    ) : null}
+                </div>
             ) : null;
 
             if (hasChildren) {

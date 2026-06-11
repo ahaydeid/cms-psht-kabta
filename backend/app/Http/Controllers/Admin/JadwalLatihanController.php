@@ -12,55 +12,67 @@ class JadwalLatihanController extends Controller
     public function index()
     {
         return Inertia::render('admin/JadwalLatihan/Index', [
-            'jadwals' => JadwalLatihan::latest()->get()
+            'jadwals' => JadwalLatihan::orderBy('tempat')->orderBy('hari')->get(),
+            'rantings' => \App\Models\Ranting::orderBy('nama')->get()
         ]);
-    }
-
-    public function create()
-    {
-        return Inertia::render('admin/JadwalLatihan/Create');
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'hari' => 'required|string|max:255',
-            'tempat' => 'required|string|max:255',
-            'waktu' => 'required|string|max:255',
-            'keterangan' => 'nullable|string',
-            'is_active' => 'required|boolean',
+        $request->validate([
+            'jadwals' => 'required|array',
+            'jadwals.*.id' => 'nullable|integer',
+            'jadwals.*.hari' => 'required|string|max:255',
+            'jadwals.*.tempat' => 'required|string|max:255',
+            'jadwals.*.waktu' => 'nullable|string|max:255',
+            'jadwals.*.alamat' => 'nullable|string',
+            'jadwals.*.kontak' => 'nullable|string|max:255',
+            'jadwals.*.latitude' => 'nullable|numeric',
+            'jadwals.*.longitude' => 'nullable|numeric',
+            'jadwals.*.keterangan' => 'nullable|string',
+            'jadwals.*.is_active' => 'required|boolean',
         ]);
 
-        JadwalLatihan::create($validated);
+        $jadwalsInput = $request->input('jadwals');
 
-        return redirect()->route('admin.jadwal-latihan.index')->with('success', 'Jadwal latihan berhasil dibuat.');
-    }
+        foreach ($jadwalsInput as $j) {
+            $isActive = $j['is_active'];
+            $id = $j['id'] ?? null;
 
-    public function edit(JadwalLatihan $jadwalLatihan)
-    {
-        return Inertia::render('admin/JadwalLatihan/Edit', [
-            'jadwal' => $jadwalLatihan
-        ]);
-    }
+            if (!$isActive) {
+                if ($id) {
+                    JadwalLatihan::destroy($id);
+                }
+            } else {
+                $data = [
+                    'hari' => $j['hari'],
+                    'tempat' => $j['tempat'],
+                    'waktu' => $j['waktu'] ?: '-',
+                    'alamat' => $j['alamat'] ?? null,
+                    'kontak' => $j['kontak'] ?? null,
+                    'latitude' => $j['latitude'] ?? null,
+                    'longitude' => $j['longitude'] ?? null,
+                    'keterangan' => $j['keterangan'] ?? null,
+                    'is_active' => true,
+                ];
 
-    public function update(Request $request, JadwalLatihan $jadwalLatihan)
-    {
-        $validated = $request->validate([
-            'hari' => 'required|string|max:255',
-            'tempat' => 'required|string|max:255',
-            'waktu' => 'required|string|max:255',
-            'keterangan' => 'nullable|string',
-            'is_active' => 'required|boolean',
-        ]);
+                if ($id) {
+                    $jadwal = JadwalLatihan::find($id);
+                    if ($jadwal) {
+                        $jadwal->update($data);
+                    }
+                } else {
+                    JadwalLatihan::create($data);
+                }
+            }
+        }
 
-        $jadwalLatihan->update($validated);
-
-        return redirect()->route('admin.jadwal-latihan.index')->with('success', 'Jadwal latihan berhasil diperbarui.');
+        return redirect()->route('admin.jadwal-latihan.index')->with('success', 'Jadwal latihan berhasil disimpan.');
     }
 
     public function destroy(JadwalLatihan $jadwalLatihan)
     {
-        $jadwalLatihan->delete();
-        return redirect()->route('admin.jadwal-latihan.index')->with('success', 'Jadwal latihan berhasil dihapus.');
+        JadwalLatihan::where('tempat', $jadwalLatihan->tempat)->delete();
+        return redirect()->route('admin.jadwal-latihan.index')->with('success', 'Jadwal latihan tempat tersebut berhasil dihapus.');
     }
 }

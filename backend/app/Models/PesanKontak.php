@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['nama', 'email', 'subjek', 'pesan', 'is_read'])]
+#[Fillable(['nama', 'email', 'ranting', 'subjek', 'pesan', 'is_read'])]
 class PesanKontak extends Model
 {
     use HasFactory;

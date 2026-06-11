@@ -1,4 +1,4 @@
-import { Building2, CalendarDays, Home, Images, Newspaper, Phone } from 'lucide-react';
+import { Info, CalendarDays, Home, Images, Newspaper, Phone, Calendar } from 'lucide-react';
 
 import type { PublicNavigationItem } from '../types';
 
@@ -28,18 +28,28 @@ export const publicNavigationItems: PublicNavigationItem[] = [
             },
         ],
         href: '/profil/tentang',
-        icon: Building2,
+        icon: Info,
         label: 'Profil',
     },
     {
+        children: [
+            {
+                href: '/berita',
+                label: 'Berita',
+            },
+            {
+                href: '/galeri',
+                label: 'Galeri',
+            },
+        ],
         href: '/berita',
         icon: Newspaper,
-        label: 'Berita',
+        label: 'Media',
     },
     {
-        href: '/galeri',
-        icon: Images,
-        label: 'Galeri',
+        href: '/agenda',
+        icon: Calendar,
+        label: 'Agenda',
     },
     {
         href: '/jadwal',

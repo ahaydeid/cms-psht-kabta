@@ -9,3 +9,4 @@ export * from './LoadingOverlay';
 export * from './Select';
 export * from './Textarea';
 export * from './ToggleSwitch';
+export * from './Combobox';

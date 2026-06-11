@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['hari', 'tempat', 'waktu', 'keterangan', 'is_active'])]
+#[Fillable(['hari', 'tempat', 'waktu', 'keterangan', 'is_active', 'alamat', 'kontak', 'latitude', 'longitude'])]
 class JadwalLatihan extends Model
 {
     use HasFactory;

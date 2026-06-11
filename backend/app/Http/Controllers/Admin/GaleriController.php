@@ -5,14 +5,56 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Galeri;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class GaleriController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $user = auth()->user();
+        $isSuperadmin = $user->hasRole('superadmin');
+        $adminRantingId = $isSuperadmin ? null : $user->keanggotaan?->ranting_id;
+
+        $query = Galeri::with(['penulis.keanggotaan.ranting']);
+
+        if (!$isSuperadmin && $adminRantingId) {
+            $query->whereHas('penulis.keanggotaan', function ($q) use ($adminRantingId) {
+                $q->where('ranting_id', $adminRantingId);
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = '%' . Str::lower($request->search) . '%';
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(judul) LIKE ?', [$search])
+                  ->orWhereRaw('LOWER(keterangan) LIKE ?', [$search])
+                  ->orWhereRaw('LOWER(status) LIKE ?', [$search])
+                  ->orWhereHas('penulis', function ($q) use ($search) {
+                      $q->whereRaw('LOWER(name) LIKE ?', [$search]);
+                  });
+            });
+        }
+
+        if ($isSuperadmin && $request->filled('ranting') && $request->ranting !== 'all') {
+            $query->whereHas('penulis.keanggotaan', function ($q) use ($request) {
+                $q->where('ranting_id', $request->ranting);
+            });
+        }
+
+        $perPage = in_array($request->integer('per_page', 10), [10, 20, 50], true) ? $request->integer('per_page', 10) : 10;
+        
+        $galeri = $query->latest()->paginate($perPage)->withQueryString();
+
         return Inertia::render('admin/Galeri/Index', [
-            'galeri' => Galeri::with('penulis')->latest()->get()
+            'galeri' => $galeri,
+            'filters' => [
+                'page' => max(1, (int) $request->integer('page', 1)),
+                'per_page' => $perPage,
+                'search' => trim((string) $request->query('search', '')),
+                'ranting' => $request->filled('ranting') ? (string) $request->query('ranting') : '',
+            ],
+            'rantings' => \App\Models\Ranting::select('id', 'nama')->orderBy('nama')->get()
         ]);
     }
 

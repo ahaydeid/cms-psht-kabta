@@ -19,6 +19,9 @@ class KeanggotaanController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = auth()->user();
+        $isSuperadmin = $user->hasRole('superadmin');
+        $adminRantingId = $isSuperadmin ? null : $user->keanggotaan?->ranting_id;
 
         $filters = [
             'page' => max(1, (int) $request->integer('page', 1)),
@@ -31,11 +34,15 @@ class KeanggotaanController extends Controller
         $members = Keanggotaan::query()
             ->with(['ranting'])
             ->when(
+                !$isSuperadmin && $adminRantingId,
+                fn ($query) => $query->where('ranting_id', $adminRantingId)
+            )
+            ->when(
                 $filters['status'] !== 'all',
                 fn ($query) => $query->where('status', $filters['status']),
             )
             ->when(
-                $filters['unit'] !== 'all',
+                $isSuperadmin && $filters['unit'] !== 'all',
                 fn ($query) => $query->where('ranting_id', (int) $filters['unit']),
             )
             ->when($filters['search'] !== '', function ($query) use ($filters) {
@@ -118,6 +125,7 @@ class KeanggotaanController extends Controller
                 'ranting' => $member->ranting?->nama ?? '-',
                 'religion' => $member->religion,
                 'status' => $member->status,
+                'isPengurusCabang' => $member->is_pengurus_cabang,
             ],
             'organizationUnitOptions' => $this->organizationUnitOptions(),
         ]);
@@ -133,7 +141,18 @@ class KeanggotaanController extends Controller
         $ranting = Ranting::query()->findOrFail($validated['organization_unit_id']);
         $photoPath = $request->hasFile('photo') ? $this->storeCompressedPhoto($request, $validated['member_number']) : null;
 
-        Keanggotaan::query()->create($this->memberAttributes($validated, $ranting, $photoPath));
+        $member = Keanggotaan::query()->create($this->memberAttributes($validated, $ranting, $photoPath));
+
+        if ($request->boolean('create_account')) {
+            $user = \App\Models\User::create([
+                'name' => $member->name,
+                'username' => $member->member_number,
+                'password' => bcrypt('password@123!'),
+                'keanggotaan_id' => $member->id,
+                'is_active' => true,
+            ]);
+            $user->assignRole('warga');
+        }
 
         return back()->with('success', 'Data warga berhasil ditambahkan.');
     }
@@ -206,7 +225,15 @@ class KeanggotaanController extends Controller
      */
     private function organizationUnitOptions(): array
     {
+        $user = auth()->user();
+        $isSuperadmin = $user->hasRole('superadmin');
+        $adminRantingId = $isSuperadmin ? null : $user->keanggotaan?->ranting_id;
+
         return Ranting::query()
+            ->when(
+                !$isSuperadmin && $adminRantingId,
+                fn ($query) => $query->where('id', $adminRantingId)
+            )
             ->orderBy('nama')
             ->get(['id', 'nama'])
             ->map(fn (Ranting $ranting) => [
@@ -248,6 +275,7 @@ class KeanggotaanController extends Controller
                 'legalization_place' => ['nullable', 'string', 'max:255'],
                 'status' => ['required', 'in:active,inactive,transferred,deceased'],
                 'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
+                'is_pengurus_cabang' => ['nullable', 'boolean'],
             ],
             [
                 'member_number.required' => 'NIW wajib diisi.',
@@ -283,6 +311,7 @@ class KeanggotaanController extends Controller
             'legalization_place' => $validated['legalization_place'] ?? null,
             'status' => $validated['status'],
             'photo_path' => $photoPath,
+            'is_pengurus_cabang' => $validated['is_pengurus_cabang'] ?? false,
         ];
     }
 

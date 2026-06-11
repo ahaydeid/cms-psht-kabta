@@ -10,7 +10,11 @@ class GaleriController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Galeri::with('penulis:id,name')->where('status', 'active');
+        $query = Galeri::with([
+            'penulis:id,name,keanggotaan_id',
+            'penulis.keanggotaan:id,ranting_id',
+            'penulis.keanggotaan.ranting:id,nama'
+        ])->where('status', 'active');
 
         $perPage = $request->input('per_page', 12);
         $galeri = $query->latest()->paginate($perPage);

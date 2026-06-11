@@ -31,6 +31,8 @@ type MemberRow = {
     status: MemberStatus;
 };
 
+
+
 type MemberFilters = {
     page: number;
     per_page: number;
@@ -54,24 +56,7 @@ type AdminWargaIndexProps = {
     organizationUnitOptions: OrganizationUnitOption[];
 };
 
-type SharedPageProps = {
-    auth?: {
-        user?: {
-            id: number;
-            name: string;
-            email: string;
-            role: string;
-        } | null;
-    };
-};
 
-const statusOptions: Array<{ label: string; value: 'all' | MemberStatus }> = [
-    { label: 'Semua Status', value: 'all' },
-    { label: 'Aktif', value: 'active' },
-    { label: 'Tidak Aktif', value: 'inactive' },
-    { label: 'Pindah', value: 'transferred' },
-    { label: 'Meninggal', value: 'deceased' },
-];
 
 function statusBadgeVariant(status: MemberStatus) {
     switch (status) {
@@ -103,73 +88,25 @@ function statusLabel(status: MemberStatus) {
     }
 }
 
-function getJakartaTodayParts() {
-    const formatter = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Jakarta',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-    });
-    const parts = formatter.formatToParts(new Date());
-
-    return {
-        year: Number(parts.find((part) => part.type === 'year')?.value ?? '0'),
-        month: Number(parts.find((part) => part.type === 'month')?.value ?? '0'),
-        day: Number(parts.find((part) => part.type === 'day')?.value ?? '0'),
-    };
-}
-
-function ageLabel(birthDateValue: string) {
-    if (!birthDateValue) {
-        return '-';
-    }
-
-    const [birthYear, birthMonth, birthDay] = birthDateValue.split('-').map(Number);
-
-    if (!birthYear || !birthMonth || !birthDay) {
-        return '-';
-    }
-
-    const today = getJakartaTodayParts();
-    let years = today.year - birthYear;
-    let months = today.month - birthMonth;
-
-    if (today.day < birthDay) {
-        months -= 1;
-    }
-
-    if (months < 0) {
-        years -= 1;
-        months += 12;
-    }
-
-    if (years < 0) {
-        return '-';
-    }
-
-    return `${years} thn, ${months} bln`;
-}
-
 export default function AdminWargaIndex({
     defaultOrganizationUnitId = null,
     filters,
     members,
     organizationUnitOptions = [],
 }: AdminWargaIndexProps) {
-    const { auth } = usePage<SharedPageProps>().props;
+    const { props } = usePage<any>();
+    const isAdmin = props.auth.user?.role === 'admin';
+
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState(filters.search);
-    const [statusFilter, setStatusFilter] = useState<'all' | MemberStatus>(filters.status);
     const [unitFilter, setUnitFilter] = useState(filters.unit);
     const [rowsPerPage, setRowsPerPage] = useState(filters.per_page);
-    const shouldShowRanting = true; // Show for all admins in this version
 
     useEffect(() => {
         setSearchTerm(filters.search);
-        setStatusFilter(filters.status);
         setUnitFilter(filters.unit);
         setRowsPerPage(filters.per_page);
-    }, [filters.page, filters.per_page, filters.search, filters.status, filters.unit]);
+    }, [filters.page, filters.per_page, filters.search, filters.unit]);
 
     const applyFilters = (nextFilters: Partial<MemberFilters>) => {
         router.get(
@@ -178,7 +115,6 @@ export default function AdminWargaIndex({
                 page: nextFilters.page ?? filters.page,
                 per_page: nextFilters.per_page ?? rowsPerPage,
                 search: nextFilters.search ?? searchTerm,
-                status: nextFilters.status ?? statusFilter,
                 unit: nextFilters.unit ?? unitFilter,
             },
             {
@@ -228,7 +164,7 @@ export default function AdminWargaIndex({
             header: 'NIW',
             key: 'memberNumber',
         },
-        ...(shouldShowRanting
+        ...(!isAdmin
             ? [
                   {
                       cell: (row: MemberRow) => <div className="w-48 truncate">{row.ranting}</div>,
@@ -254,11 +190,10 @@ export default function AdminWargaIndex({
         {
             cell: (row) => (
                 <Button
-                    className="text-zinc-700"
                     icon={<Eye className="h-4 w-4" />}
                     onClick={() => router.visit(`/admin/warga/${row.id}`)}
                     size="sm"
-                    variant="warning"
+                    variant="secondary"
                 >
                     Detail
                 </Button>
@@ -287,41 +222,27 @@ export default function AdminWargaIndex({
                     }
                     columns={columns}
                     controlsEnd={
-                        <>
-                            <Select
-                                className="min-w-40"
-                                containerClassName="w-auto"
-                                onChange={(event) => {
-                                    const nextStatus = event.target.value as 'all' | MemberStatus;
-                                    setStatusFilter(nextStatus);
-                                    applyFilters({ page: 1, status: nextStatus });
-                                }}
-                                value={statusFilter}
-                            >
-                                {statusOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </Select>
-                            <Select
-                                className="min-w-48"
-                                containerClassName="w-auto"
-                                onChange={(event) => {
-                                    const nextUnit = event.target.value;
-                                    setUnitFilter(nextUnit);
-                                    applyFilters({ page: 1, unit: nextUnit });
-                                }}
-                                value={unitFilter}
-                            >
-                                <option value="all">Semua Ranting</option>
-                                {organizationUnitOptions.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.name}
-                                    </option>
-                                ))}
-                            </Select>
-                        </>
+                        !isAdmin && (
+                            <>
+                                <Select
+                                    className="min-w-48"
+                                    containerClassName="w-auto"
+                                    onChange={(event) => {
+                                        const nextUnit = event.target.value;
+                                        setUnitFilter(nextUnit);
+                                        applyFilters({ page: 1, unit: nextUnit });
+                                    }}
+                                    value={unitFilter}
+                                >
+                                    <option value="all">Semua</option>
+                                    {organizationUnitOptions.map((option) => (
+                                        <option key={option.id} value={option.id}>
+                                            {option.name}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </>
+                        )
                     }
                     currentPage={members.currentPage}
                     data={members.data}
